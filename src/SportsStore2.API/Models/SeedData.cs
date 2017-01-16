@@ -14,10 +14,42 @@ namespace SportsStore2.API.Models
             using (var context = new SportsStore2Context(
                 serviceProvider.GetRequiredService<DbContextOptions<SportsStore2Context>>()))
             {
+                #region Images
+                //if (context.Images.Any())
+                //    return;
+                context.Images.AddRange(
+                        new Image
+                        {
+                            ImageUrl = "/Brands/adidas_logo.png"
+                        },
+                        new Image
+                        {
+                            ImageUrl = "/Brands/nike_logo.png"
+                        },
+                        new Image
+                        {
+                            ImageUrl = "/Brands/puma_logo.png"
+                        },
+                        new Image
+                        {
+                            ImageUrl = "/Products/adidas_shoes_women.png"
+                        },
+                        new Image
+                        {
+                            ImageUrl = "/Products/nike_shoes_men.png"
+                        },
+                        new Image
+                        {
+                            ImageUrl = "/Products/puma_shoes_children.png"
+                        }
+                    );
+
+                #endregion
+
                 #region Countries
                 //look for any Countries
-                if (context.Countries.Any())
-                    return;
+                //if (context.Countries.Any())
+                //    return;
 
                 context.Countries.AddRange(
                         new Country
@@ -50,8 +82,8 @@ namespace SportsStore2.API.Models
 
                 #region Categories
                 //look for any category
-                if (context.Categories.Any())
-                    return;
+                //if (context.Categories.Any())
+                //    return;
 
                 context.Categories.AddRange(
                     new Category
@@ -75,21 +107,24 @@ namespace SportsStore2.API.Models
 
                 #region Brands
                 //look for any brands
-                if (context.Brands.Any())
-                    return;
+                //if (context.Brands.Any())
+                //    return;
 
                 context.Brands.AddRange(
                         new Brand
                         {
-                            Name = "Nike"
+                            Name = "Adidas",
+                            ImageId = 1
                         },
                         new Brand
                         {
-                            Name = "Adidas"
+                            Name = "Nike",
+                            ImageId = 2
                         },
                         new Brand
                         {
-                            Name = "Puma"
+                            Name = "Puma",
+                            ImageId = 3
                         }
                     );
 
@@ -97,8 +132,8 @@ namespace SportsStore2.API.Models
 
                 #region Products
                 //look for any products
-                if (context.Products.Any())
-                    return;
+                //if (context.Products.Any())
+                //    return;
 
                 context.Products.AddRange(
                         new Product
@@ -110,7 +145,8 @@ namespace SportsStore2.API.Models
                             Discount = 0,
                             Name = "Nike Shoes",
                             Price = new decimal(50.00),
-                            Stock = 5
+                            Stock = 5,
+                            ImageId = 5
                         },
                         new Product
                         {
@@ -121,7 +157,8 @@ namespace SportsStore2.API.Models
                             Discount = 0,
                             Name = "Adidas Shoes",
                             Price = new decimal(65.00),
-                            Stock = 5
+                            Stock = 5,
+                            ImageId = 4
                         },
                         new Product
                         {
@@ -132,7 +169,8 @@ namespace SportsStore2.API.Models
                             Discount = 0,
                             Name = "Puma Shoes",
                             Price = new decimal(65.00),
-                            Stock = 5
+                            Stock = 5,
+                            ImageId = 6
                         }
 
                     );

@@ -6,6 +6,11 @@ namespace SportsStore2.API.Models
 {
     public partial class SportsStore2Context : DbContext
     {
+        public SportsStore2Context(DbContextOptions<SportsStore2Context> options)
+            : base(options)
+        {
+        }
+
         public virtual DbSet<Address> Address { get; set; }
         public virtual DbSet<AddressType> AddressType { get; set; }
         public virtual DbSet<AspNetRoleClaims> AspNetRoleClaims { get; set; }
@@ -22,10 +27,6 @@ namespace SportsStore2.API.Models
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<User> Users { get; set; }
 
-        public SportsStore2Context(DbContextOptions<SportsStore2Context> options)
-                    : base(options)
-        {
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

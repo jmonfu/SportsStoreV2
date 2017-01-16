@@ -14,8 +14,10 @@ namespace SportsStore2.API.Models
         public short Stock { get; set; }
         public bool? Deal { get; set; }
         public int? Discount { get; set; }
+        public long? ImageId { get; set; }
 
         public virtual Brand Brand { get; set; }
         public virtual Category Category { get; set; }
+        public virtual Image Image { get; set; }
     }
 }

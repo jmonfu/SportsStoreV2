@@ -6,11 +6,6 @@ namespace SportsStore2.API.Models
 {
     public partial class SportsStore2Context : DbContext
     {
-        public SportsStore2Context(DbContextOptions<SportsStore2Context> options)
-            : base(options)
-        {
-        }
-
         public virtual DbSet<Address> Address { get; set; }
         public virtual DbSet<AddressType> AddressType { get; set; }
         public virtual DbSet<AspNetRoleClaims> AspNetRoleClaims { get; set; }
@@ -23,8 +18,14 @@ namespace SportsStore2.API.Models
         public virtual DbSet<Brand> Brands { get; set; }
         public virtual DbSet<Category> Categories { get; set; }
         public virtual DbSet<Country> Countries { get; set; }
+        public virtual DbSet<Image> Images { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<User> Users { get; set; }
+
+        public SportsStore2Context(DbContextOptions<SportsStore2Context> options)
+                    : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -190,6 +191,11 @@ namespace SportsStore2.API.Models
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(256);
+
+                entity.HasOne(d => d.Image)
+                    .WithMany(p => p.Brands)
+                    .HasForeignKey(d => d.ImageId)
+                    .HasConstraintName("FK_Brands_Images");
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -208,6 +214,13 @@ namespace SportsStore2.API.Models
                     .HasMaxLength(256);
 
                 entity.Property(e => e.Type).HasMaxLength(10);
+            });
+
+            modelBuilder.Entity<Image>(entity =>
+            {
+                entity.Property(e => e.ImageUrl)
+                    .IsRequired()
+                    .HasMaxLength(256);
             });
 
             modelBuilder.Entity<Product>(entity =>
@@ -229,6 +242,11 @@ namespace SportsStore2.API.Models
                     .HasForeignKey(d => d.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict)
                     .HasConstraintName("FK_Products_Categories");
+
+                entity.HasOne(d => d.Image)
+                    .WithMany(p => p.Products)
+                    .HasForeignKey(d => d.ImageId)
+                    .HasConstraintName("FK_Products_Images");
             });
 
             modelBuilder.Entity<User>(entity =>

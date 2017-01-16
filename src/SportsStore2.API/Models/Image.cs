@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace SportsStore2.API.Models
 {
-    public partial class Brand
+    public partial class Image
     {
-        public Brand()
+        public Image()
         {
+            Brands = new HashSet<Brand>();
             Products = new HashSet<Product>();
         }
 
         public long Id { get; set; }
-        public string Name { get; set; }
-        public long? ImageId { get; set; }
+        public string ImageUrl { get; set; }
 
+        public virtual ICollection<Brand> Brands { get; set; }
         public virtual ICollection<Product> Products { get; set; }
-        public virtual Image Image { get; set; }
     }
 }

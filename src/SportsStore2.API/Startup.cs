@@ -42,6 +42,9 @@ namespace SportsStore2.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var connection = @" Server=.;Database=SportsStore2;Trusted_Connection=True;MultipleActiveResultSets=true";
+            services.AddDbContext<SportsStore2Context>(options => options.UseSqlServer(connection));
+
             // Add framework services.
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -92,6 +95,8 @@ namespace SportsStore2.API
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            SeedData.Initialize(app.ApplicationServices);
         }
     }
 }

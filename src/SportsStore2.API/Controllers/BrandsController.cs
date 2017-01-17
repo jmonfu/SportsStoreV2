@@ -40,24 +40,31 @@ namespace SportsStore2.API.Controllers
             if(brand == null)
                 return BadRequest();
 
-            _brandsService.AddBrand(brand);
-            return CreatedAtRoute("GetBrands", new { id = brand.Id }, brand);
+            if (_brandsService.AddBrand(brand).Result)
+            {
+                return CreatedAtRoute("GetBrands", new {id = brand.Id}, brand);
+            }
+            return BadRequest("Item not added");
         }
 
         [HttpPut("{id}")]
         public IActionResult Update(int id, [FromBody] Brand brand)
         {
-            if(brand == null || brand.Id != id)
+            if (brand == null || brand.Id != id)
+            {
                 return BadRequest();
+            }
 
-            var result = _brandsService.UpdateBrand(brand);
-            return result;
+            _brandsService.UpdateBrand(brand);
+            return new NoContentResult();
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(long id)
+        public IActionResult Delete(int id)
         {
-            return _brandsService.DeleteBrand(id);
+            var brand = _brandsService.GetBrandById(id);
+            _brandsService.DeleteBrand(brand.Result);
+            return new NoContentResult();
         }
     }
 }

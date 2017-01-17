@@ -63,6 +63,10 @@ namespace SportsStore2.API
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
 
+
+
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
             services.AddScoped<IBrandsRepository, BrandsRepository>();
             services.AddTransient<IBrandsService, BrandsService>();
 

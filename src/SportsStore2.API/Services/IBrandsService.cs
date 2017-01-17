@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SportsStore2.API.Models;
 
@@ -6,10 +7,10 @@ namespace SportsStore2.API.Services
 {
     public interface IBrandsService
     {
-        Task<IActionResult> GetBrands();
-        Task<IActionResult> GetBrandById(int id);
-        void AddBrand(Brand brand);
-        IActionResult UpdateBrand(Brand brand);
-        IActionResult DeleteBrand(long id);
+        Task<List<Brand>> GetBrands();
+        Task<Brand> GetBrandById(int id);
+        Task<bool> AddBrand(Brand brand);
+        bool UpdateBrand(Brand brand);
+        void DeleteBrand(Brand brand);
     }
 }

@@ -11,35 +11,42 @@ namespace SportsStore2.API.Services
 {
     public class BrandsService : IBrandsService
     {
-        private readonly IBrandsRepository _brandsRepository;
+        private readonly IGenericRepository<Brand> _brandsGenericRepository;
 
-        public BrandsService(IBrandsRepository brandsRepository)
+        public BrandsService(IGenericRepository<Brand> brandsGenericRepository)
         {
-            _brandsRepository = brandsRepository;
+            _brandsGenericRepository = brandsGenericRepository;
         }
-        public async Task<IActionResult> GetBrands()
+        public async Task<List<Brand>> GetBrands()
         {
-            return await _brandsRepository.GetBrands();
-        }
-
-        public async Task<IActionResult> GetBrandById(int id)
-        {
-            return await _brandsRepository.GetBrandById(id);
+            return await _brandsGenericRepository.GetAll(null, "Image");
         }
 
-        public void AddBrand(Brand brand)
+        public async Task<Brand> GetBrandById(int id)
         {
-            _brandsRepository.AddBrand(brand);
+            //return await _brandsRepository.GetBrandById(id);
+            return await _brandsGenericRepository.Get<Brand>(m => m.Id == id, "Image");
         }
 
-        public IActionResult UpdateBrand(Brand brand)
+        public async Task<bool> AddBrand(Brand brand)
         {
-            return _brandsRepository.UpdateBrand(brand);
+            var existingBrand = await _brandsGenericRepository.Get<Brand>(m => m.Name == brand.Name, null);
+
+            if (existingBrand != null) return false;
+
+            _brandsGenericRepository.Add(brand);
+            return true;
         }
 
-        public IActionResult DeleteBrand(long id)
+        public bool UpdateBrand(Brand brand)
         {
-            return _brandsRepository.DeleteBrand(id);
+            _brandsGenericRepository.Update(brand);
+            return true;
+        }
+
+        public void DeleteBrand(Brand brand)
+        {
+            _brandsGenericRepository.Delete(brand);
         }
     }
 }

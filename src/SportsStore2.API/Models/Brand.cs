@@ -12,7 +12,7 @@ namespace SportsStore2.API.Models
 
         public long Id { get; set; }
         public string Name { get; set; }
-        public long? ImageId { get; set; }
+        public long ImageId { get; set; }
 
         public virtual ICollection<Product> Products { get; set; }
         public virtual Image Image { get; set; }

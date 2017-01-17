@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SportsStore2.API.Data;
 using SportsStore2.API.Models;
+using SportsStore2.API.Repository;
 using SportsStore2.API.Services;
 
 namespace SportsStore2.API
@@ -58,8 +59,13 @@ namespace SportsStore2.API
             services.AddMvc();
 
             // Add application services.
+
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
+
+            services.AddScoped<IBrandsRepository, BrandsRepository>();
+            services.AddTransient<IBrandsService, BrandsService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,6 +81,7 @@ namespace SportsStore2.API
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
+
             }
             else
             {

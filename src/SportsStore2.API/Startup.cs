@@ -27,7 +27,7 @@ namespace SportsStore2.API
 
             if (env.IsDevelopment())
             {
-                // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709
+                // For more details on using the User secret store see http://go.microsoft.com/fwlink/?LinkID=532709
                 builder.AddUserSecrets();
 
                 // This will push telemetry data through Application Insights pipeline faster, allowing you to view results immediately.
@@ -66,9 +66,7 @@ namespace SportsStore2.API
 
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-            services.AddScoped<IBrandsRepository, BrandsRepository>();
-            services.AddTransient<IBrandsService, BrandsService>();
+            services.AddTransient(typeof(IGenericService<>), typeof(GenericService<>));
 
         }
 

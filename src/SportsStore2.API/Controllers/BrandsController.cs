@@ -10,12 +10,13 @@ using SportsStore2.API.Services;
 
 namespace SportsStore2.API.Controllers
 {
+    [Produces("application/json")]
     [Route("api/[controller]")]
     public class BrandsController : Controller
     {
-        private readonly IBrandsService _brandsService;
-
-        public BrandsController(IBrandsService brandsService)
+        private readonly IGenericService<Brand> _brandsService;
+            
+        public BrandsController(IGenericService<Brand> brandsService)
         {
             _brandsService = brandsService;
         }
@@ -23,26 +24,26 @@ namespace SportsStore2.API.Controllers
         [HttpGet("/api/Brands/Get", Name = "GetBrands")]
         public async Task<IActionResult> Get()
         {
-            var brands = await _brandsService.GetBrands();
+            var brands = await _brandsService.GetAll(null, "Image");
             return Json(brands);
         }
 
         [HttpGet("/api/Brands/Get/{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var brand = await _brandsService.GetBrandById(id);
+            var brand = await _brandsService.GetById<Brand>(m => m.Id == id, "Image");
             return Json(brand);
         }
 
         [HttpPost]
         public IActionResult Create([FromBody] Brand brand)
         {
-            if(brand == null)
+            if (brand == null)
                 return BadRequest();
 
-            if (_brandsService.AddBrand(brand).Result)
+            if (_brandsService.Add(brand, m => m.Name == brand.Name).Result)
             {
-                return CreatedAtRoute("GetBrands", new {id = brand.Id}, brand);
+                return CreatedAtRoute("GetBrands", new { id = brand.Id }, brand);
             }
             return BadRequest("Item not added");
         }
@@ -55,15 +56,15 @@ namespace SportsStore2.API.Controllers
                 return BadRequest();
             }
 
-            _brandsService.UpdateBrand(brand);
+            _brandsService.Update(brand);
             return new NoContentResult();
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var brand = _brandsService.GetBrandById(id);
-            _brandsService.DeleteBrand(brand.Result);
+            var brand = _brandsService.GetById<Brand>(m => m.Id == id);
+            _brandsService.Delete(brand.Result);
             return new NoContentResult();
         }
     }

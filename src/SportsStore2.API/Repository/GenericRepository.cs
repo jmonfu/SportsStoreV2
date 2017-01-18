@@ -23,7 +23,7 @@ namespace SportsStore2.API.Repository
         public async Task<T> Get<TKey>(Expression<Func<T, bool>> filter = null, string includeProperties = "", bool noTracking = false)
 
         {
-            includeProperties = includeProperties ?? string.Empty;
+            includeProperties = includeProperties.Trim() ?? string.Empty;
             IQueryable<T> query = Context.Set<T>();
 
             if (noTracking)

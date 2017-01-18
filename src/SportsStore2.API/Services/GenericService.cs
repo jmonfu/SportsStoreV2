@@ -53,6 +53,7 @@ namespace SportsStore2.API.Services
         {
             _genericRepository.Delete(entity);
         }
+
     }
 
 }

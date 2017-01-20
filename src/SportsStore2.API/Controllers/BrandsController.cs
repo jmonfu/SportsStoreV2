@@ -41,7 +41,9 @@ namespace SportsStore2.API.Controllers
             if (brand == null)
                 return BadRequest();
 
-            if (_brandsService.Add(brand, m => m.Name == brand.Name).Result)
+            var result = _brandsService.Add(brand, m => m.Name == brand.Name);
+
+            if (result.Status == TaskStatus.Created)
             {
                 return CreatedAtRoute("GetBrands", new { id = brand.Id }, brand);
             }
@@ -63,6 +65,11 @@ namespace SportsStore2.API.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
+            if (id <=0 )
+            {
+                return BadRequest();
+            }
+
             var brand = _brandsService.GetById<Brand>(m => m.Id == id);
             _brandsService.Delete(brand.Result);
             return new NoContentResult();

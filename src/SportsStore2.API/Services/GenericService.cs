@@ -11,7 +11,6 @@ namespace SportsStore2.API.Services
     public class GenericService<T> : IGenericService<T>  where T : class
     {
         private readonly IGenericRepository<T> _genericRepository;
-        private IGenericService<T> _genericServiceImplementation;
 
         public GenericService(IGenericRepository<T> genericRepository)
         {

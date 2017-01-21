@@ -1,14 +1,17 @@
-﻿{
-"version": "1.0.0-*",
+{
+  "version": "1.0.0-*",
+  "userSecretsId": "aspnet-SportsStore2.API-b567a986-6c5a-40b6-b35f-64a1c4cbcd56",
 
   "dependencies": {
     "NUnit": "3.6.0",
     "dotnet-test-nunit": "3.4.0-beta-3",
     "SportsStore2.API": "1.0.0-*",
-    "Moq": "4.6.38-alpha"
+    "Moq": "4.6.38-alpha",
+    "Microsoft.AspNetCore.TestHost": "1.1.0",
+    "Microsoft.Extensions.Configuration.CommandLine": "1.1.0"
   },
 
-    "testRunner": "nunit",
+  "testRunner": "nunit",
 
   "frameworks": {
     "netcoreapp1.0": {

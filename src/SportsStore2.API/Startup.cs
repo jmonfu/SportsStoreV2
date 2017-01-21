@@ -6,9 +6,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using SportsStore2.API.Data;
 using SportsStore2.API.Models;
 using SportsStore2.API.Repository;
@@ -56,7 +59,13 @@ namespace SportsStore2.API
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMvc();
+            services.AddMvc().AddJsonOptions(options => {
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+            });
+            services.AddEntityFramework().AddDbContext<SportsStore2Context>(
+                options => options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"])
+                );
 
             // Add application services.
 

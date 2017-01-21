@@ -11,7 +11,9 @@ namespace SportsStore2.API.Services
     {
         Task<List<T>> GetAll(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = null);
 
-        Task<T> GetById<TKey>(Expression<Func<T, bool>> filter = null, string includeProperties = "",
+        Task<T> GetById<TKey>(
+            Expression<Func<T, bool>> filter = null, 
+            string includeProperties = "", 
             bool noTracking = false);
 
         Task<bool> Add(T entity, Expression<Func<T, bool>> filter = null);

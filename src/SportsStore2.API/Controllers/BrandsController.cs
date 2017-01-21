@@ -22,7 +22,7 @@ namespace SportsStore2.API.Controllers
         }
 
         [HttpGet("/api/Brands/Get", Name = "GetBrands")]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get()  
         {
             var brands = await _brandsService.GetAll(null, "Image");
             return Json(brands);

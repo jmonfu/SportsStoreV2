@@ -46,50 +46,50 @@ namespace SportsStore2.Tests.UnitTests
             };
         }
     
-        [Test]
-        public async Task Get_ReturnsAListOfBrands_BrandsController()
-        {
-            //Arrange
-            var mockService = new Mock<IGenericService<Brand>>();
-            mockService.Setup(repo => repo.GetAll(
-                    It.IsAny<Func<IQueryable<Brand>, IOrderedQueryable<Brand>>>(),
-                    It.IsAny<string>()
-                )).ReturnsAsync(Brands);
-            var controller = new BrandsController(mockService.Object);
+        //[Test]
+        //public async Task Get_ReturnsAListOfBrands_BrandsController()
+        //{
+        //    //Arrange
+        //    var mockService = new Mock<IGenericService<Brand>>();
+        //    mockService.Setup(repo => repo.GetAll(
+        //            It.IsAny<Func<IQueryable<Brand>, IOrderedQueryable<Brand>>>(),
+        //            It.IsAny<string>()
+        //        )).ReturnsAsync(Brands);
+        //    var controller = new BrandsController(mockService.Object);
 
-            //Act
-            JsonResult actualResult = await controller.Get() as JsonResult;
-            dynamic obj = actualResult.Value;
-            int i = 0;
-            foreach (var value in obj)
-            {
-                i++;
-            }
+        //    //Act
+        //    JsonResult actualResult = await controller.Get() as JsonResult;
+        //    dynamic obj = actualResult.Value;
+        //    int i = 0;
+        //    foreach (var value in obj)
+        //    {
+        //        i++;
+        //    }
 
-            //Assert
-            Assert.AreEqual(i, 3);
-        }
+        //    //Assert
+        //    Assert.AreEqual(i, 3);
+        //}
 
-        [Test]
-        public async Task GetById_ReturnsOneBrand_BrandsController()
-        {
-            //Arrange
-            var mockService = new Mock<IGenericService<Brand>>();
-            mockService.Setup(repo => repo.GetById<Brand>(
-                    It.IsAny<Expression<Func<Brand, bool>>>(),
-                    It.IsAny<string>(),
-                    It.IsAny<bool>())
-                ).ReturnsAsync(new Brand {Id = 1, Name = "Adidas"});
-            var controller = new BrandsController(mockService.Object);
+        //[Test]
+        //public async Task GetById_ReturnsOneBrand_BrandsController()
+        //{
+        //    //Arrange
+        //    var mockService = new Mock<IGenericService<Brand>>();
+        //    mockService.Setup(repo => repo.GetById<Brand>(
+        //            It.IsAny<Expression<Func<Brand, bool>>>(),
+        //            It.IsAny<string>(),
+        //            It.IsAny<bool>())
+        //        ).ReturnsAsync(new Brand {Id = 1, Name = "Adidas"});
+        //    var controller = new BrandsController(mockService.Object);
 
-            //Act
-            JsonResult actualResult = await controller.Get(1) as JsonResult;
-            var obj = actualResult.Value as Brand;
+        //    //Act
+        //    JsonResult actualResult = await controller.Get(1) as JsonResult;
+        //    var obj = actualResult.Value as Brand;
 
-            //Assert
-            Assert.AreEqual(obj.Id, 1);
-            Assert.AreEqual(obj.Name, "Adidas");
-        }
+        //    //Assert
+        //    Assert.AreEqual(obj.Id, 1);
+        //    Assert.AreEqual(obj.Name, "Adidas");
+        //}
 
         [Test]
         public void CreateBrand_ValidBrand_Returns_CreatedAtRouteResult_BrandsController()

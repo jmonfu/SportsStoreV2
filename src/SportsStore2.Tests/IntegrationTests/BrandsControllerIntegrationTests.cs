@@ -20,8 +20,9 @@ namespace SportsStore2.Tests.IntegrationTests
     public class BrandsControllerIntegrationTests
     {
         private HttpClient _client;
-        private Brand brand;
-        private Image image;
+        private Brand testBrand;
+        private Image testImage;
+        private string request;
 
         [SetUp]
         public void Setup()
@@ -32,13 +33,16 @@ namespace SportsStore2.Tests.IntegrationTests
             var server = new TestServer(Utils.GetHostBuilder(new string[] { }).UseContentRoot(projectPath).UseEnvironment("Development").UseStartup<Startup>());
             _client = server.CreateClient();
 
+            request = "api/Brands/";
+            testBrand = new Brand { Name = "testBrand" };
+            testImage = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
+            testBrand.Image = testImage;
         }
 
         [Test]
         public async Task Get_ReturnsAListOfBrands_BrandsController()
         {
-            var request = "api/Brands/Get";
-            var response = await _client.GetAsync(request);
+            var response = await _client.GetAsync(request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -48,11 +52,10 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneBrand_BrandController()
         {
             //Arrange 
-            var request = "api/Brands";
             Brand selectedBrand = null;
 
             //Act
-            var getResponse = await _client.GetAsync(request + "/Get");
+            var getResponse = await _client.GetAsync(request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allBrands = JsonConvert.DeserializeObject<List<Brand>>(all.Result);
             if (allBrands.Count > 0)
@@ -61,15 +64,14 @@ namespace SportsStore2.Tests.IntegrationTests
             }
             else
             {
-                brand = new Brand { Name = "testBrand" };
-                var postResponse = await _client.PostAsJsonAsync(request, brand);
+                var postResponse = await _client.PostAsJsonAsync(request, testBrand);
                 var created = await postResponse.Content.ReadAsStringAsync();
                 selectedBrand = JsonConvert.DeserializeObject<Brand>(created);
 
-                brand.Id = selectedBrand.Id;
+                testBrand.Id = selectedBrand.Id;
             }
 
-            var getResponseOneBrand = await _client.GetAsync(request + "/Get/" + selectedBrand.Id);
+            var getResponseOneBrand = await _client.GetAsync(request + "Get/" + selectedBrand.Id);
             var fetched = await getResponseOneBrand.Content.ReadAsStringAsync();
             var fetchedBrand = JsonConvert.DeserializeObject<Brand>(fetched);
 
@@ -84,20 +86,16 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Create_CreateABrand_BrandsController()
         {
             //Arrange 
-            var requestBrand = "api/Brands/";
-            brand = new Brand { Name = "testBrand" };
-            image = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
-            brand.Image = image;
 
             //Act
-            var postResponseBrand = await _client.PostAsJsonAsync(requestBrand, brand);
+            var postResponseBrand = await _client.PostAsJsonAsync(request, testBrand);
             var createdBrand = await postResponseBrand.Content.ReadAsStringAsync();
             var createdBrandObj = JsonConvert.DeserializeObject<Brand>(createdBrand);
-            brand.Id = createdBrandObj.Id;
-            brand.ImageId = createdBrandObj.Image.Id;
-            image.Id = brand.ImageId;
+            testBrand.Id = createdBrandObj.Id;
+            testBrand.ImageId = createdBrandObj.Image.Id;
+            testImage.Id = testBrand.ImageId;
 
-            var getResponse = await _client.GetAsync(requestBrand + "Get/" + createdBrandObj.Id);
+            var getResponse = await _client.GetAsync(request + "Get/" + createdBrandObj.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedBrand = JsonConvert.DeserializeObject<Brand>(fetched);
 
@@ -105,8 +103,8 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponseBrand.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(brand.Name, createdBrandObj.Name);
-            Assert.AreEqual(brand.Name, fetchedBrand.Name);
+            Assert.AreEqual(testBrand.Name, createdBrandObj.Name);
+            Assert.AreEqual(testBrand.Name, fetchedBrand.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdBrandObj.Id);
             Assert.AreEqual(createdBrandObj.Id, fetchedBrand.Id);
@@ -116,31 +114,26 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Update_UpdateABrand_BrandsController()
         {
             //Arrange 
-            var request = "api/Brands/";
-            brand = new Brand { Name = "testBrand" };
-            image = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
-            brand.Image = image;
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, brand);
+            var postResponse = await _client.PostAsJsonAsync(request, testBrand);
             var createdBrand = await postResponse.Content.ReadAsStringAsync();
             var createdBrandObj = JsonConvert.DeserializeObject<Brand>(createdBrand);
-            brand.Id = createdBrandObj.Id;
-            brand.ImageId = createdBrandObj.Image.Id;
-            image.Id = brand.ImageId;
+            testBrand.Id = createdBrandObj.Id;
+            testBrand.ImageId = createdBrandObj.Image.Id;
+            testImage.Id = testBrand.ImageId;
 
             //PUT(Update)
-            brand.Id = brand.Id;
-            brand.Name = "testBrandUpdated";
-            var putResponse = await _client.PutAsJsonAsync(request + createdBrandObj.Id, brand);
+            testBrand.Name = "testBrandUpdated";
+            var putResponse = await _client.PutAsJsonAsync(request + createdBrandObj.Id, testBrand);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + brand.Id);
+            var getResponse = await _client.GetAsync(request + "Get/" + testBrand.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedBrand = JsonConvert.DeserializeObject<Brand>(fetched);
 
-            brand.Id = fetchedBrand.Id;
+            testBrand.Id = fetchedBrand.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -160,19 +153,15 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Delete_DeleteABrand_BrandsController()
         {
             //Arrange 
-            var request = "api/Brands/";
-            brand = new Brand { Name = "testBrand" };
-            image = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
-            brand.Image = image;
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, brand);
+            var postResponse = await _client.PostAsJsonAsync(request, testBrand);
             var createdBrand = await postResponse.Content.ReadAsStringAsync();
             var createdBrandObj = JsonConvert.DeserializeObject<Brand>(createdBrand);
-            brand.Id = createdBrandObj.Id;
-            brand.ImageId = createdBrandObj.Image.Id;
-            image.Id = brand.ImageId;
+            testBrand.Id = createdBrandObj.Id;
+            testBrand.ImageId = createdBrandObj.Image.Id;
+            testImage.Id = testBrand.ImageId;
 
             //DELETE
             var deleteResponse = await _client.DeleteAsync(request + createdBrandObj.Id);
@@ -186,7 +175,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(brand.Name, createdBrandObj.Name);
+            Assert.AreEqual(testBrand.Name, createdBrandObj.Name);
             Assert.AreNotEqual(Guid.Empty, createdBrandObj.Id);
 
             Assert.IsTrue(allBrands.Any(x => x.Id == createdBrandObj.Id == false));
@@ -194,22 +183,22 @@ namespace SportsStore2.Tests.IntegrationTests
         }
 
         [TearDown]
-        public async Task DeleteImages()
+        public async Task DeleteImagesAndBrands()
         {
             //Cleanup
             var requestImage = "api/Images/";
             var requestBrand = "api/Brands/";
 
-            if (brand != null && brand.Id > 0)
+            if (testBrand != null && testBrand.Id > 0)
             {
-                await _client.DeleteAsync(requestBrand + brand.Id);
-                brand = null;
+                await _client.DeleteAsync(requestBrand + testBrand.Id);
+                testBrand = null;
             }
 
-            if (image != null && image.Id > 0)
+            if (testImage != null && testImage.Id > 0)
             {
-                await _client.DeleteAsync(requestImage + image.Id);
-                image = null;
+                await _client.DeleteAsync(requestImage + testImage.Id);
+                testImage = null;
             }
         }
 

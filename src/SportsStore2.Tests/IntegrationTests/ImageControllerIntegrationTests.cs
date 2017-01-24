@@ -19,7 +19,8 @@ namespace SportsStore2.Tests.IntegrationTests
     public class ImageControllerIntegrationTests
     {
         private HttpClient _client;
-        private Image image;
+        private Image testImage;
+        private string request;
 
         [SetUp]
         public void Setup()
@@ -34,6 +35,8 @@ namespace SportsStore2.Tests.IntegrationTests
 
             _client = server.CreateClient();
 
+            testImage = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
+            request = "api/Images/";
         }
 
         [Test]
@@ -50,11 +53,10 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneImage_ImagesController()
         {
             //Arrange 
-            var request = "api/Images";
             Image selectedImage = null;
             
             //Act
-            var getResponse = await _client.GetAsync(request + "/Get");
+            var getResponse = await _client.GetAsync(request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allImages = JsonConvert.DeserializeObject<List<Image>>(all.Result);
             if (allImages.Count > 0)
@@ -63,15 +65,14 @@ namespace SportsStore2.Tests.IntegrationTests
             }
             else
             {
-                image = new Image { Name = "testImageCreate", Url = "/Brands/adidas_logo_test.png" };
-                var postResponse = await _client.PostAsJsonAsync(request, image);
+                var postResponse = await _client.PostAsJsonAsync(request, testImage);
                 var created = await postResponse.Content.ReadAsStringAsync();
                 selectedImage = JsonConvert.DeserializeObject<Image>(created);
 
-                image.Id = selectedImage.Id;
+                testImage.Id = selectedImage.Id;
             }
 
-            var getResponseOneImage = await _client.GetAsync(request + "/Get/" + selectedImage.Id);
+            var getResponseOneImage = await _client.GetAsync(request + "Get/" + selectedImage.Id);
             var fetched = await getResponseOneImage.Content.ReadAsStringAsync();
             var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
 
@@ -86,17 +87,15 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Create_CreateAnImage_ImagesController()
         {
             //Arrange 
-            var request = "api/Images";
-            image = new Image { Name = "testImageCreate", Url = "/Brands/adidas_logo_test.png" };
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, image);
+            var postResponse = await _client.PostAsJsonAsync(request, testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
-            image.Id = createdImage.Id;
+            testImage.Id = createdImage.Id;
 
-            var getResponse = await _client.GetAsync(request + "/Get/" + createdImage.Id);
+            var getResponse = await _client.GetAsync(request + "Get/" + createdImage.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
 
@@ -104,8 +103,8 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(image.Name, createdImage.Name);
-            Assert.AreEqual(image.Name, fetchedImage.Name);
+            Assert.AreEqual(testImage.Name, createdImage.Name);
+            Assert.AreEqual(testImage.Name, fetchedImage.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdImage.Id);
             Assert.AreEqual(createdImage.Id, fetchedImage.Id);
@@ -115,27 +114,25 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Update_UpdateAnImageViaPUT_ImagesController()
         {
             //Arrange 
-            var request = "api/Images/";
-            image = new Image { Name = "testImageUpdate", Url = "/Brands/adidas_logo_test.png" };
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, image);
+            var postResponse = await _client.PostAsJsonAsync(request, testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
             //PUT(Update)
-            image.Id = createdImage.Id;
-            image.Name = "testImageUpdated";
-            image.Url = "/Brands/adidas_logo_test_Updated.png";
-            var putResponse = await _client.PutAsJsonAsync(request + createdImage.Id, image);
+            testImage.Id = createdImage.Id;
+            testImage.Name = "testImageUpdated";
+            testImage.Url = "/Brands/adidas_logo_test_Updated.png";
+            var putResponse = await _client.PutAsJsonAsync(request + createdImage.Id, testImage);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + image.Id);
+            var getResponse = await _client.GetAsync(request + "Get/" + testImage.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
 
-            image.Id = fetchedImage.Id;
+            testImage.Id = fetchedImage.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -143,7 +140,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("testImageUpdate", createdImage.Name);
+            Assert.AreEqual("testImage", createdImage.Name);
             Assert.AreEqual("testImageUpdated", fetchedImage.Name);
 
             Assert.AreEqual("/Brands/adidas_logo_test.png", createdImage.Url);
@@ -158,12 +155,10 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Delete_DeleteAnImage_ImagesController()
         {
             //Arrange 
-            var request = "api/Images/";
-            var image = new Image { Name = "testImageDel", Url = "/Brands/adidas_logo_test.png" };
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, image);
+            var postResponse = await _client.PostAsJsonAsync(request, testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
@@ -179,7 +174,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(image.Name, createdImage.Name);
+            Assert.AreEqual(testImage.Name, createdImage.Name);
             Assert.AreNotEqual(Guid.Empty, createdImage.Id);
 
             Assert.IsTrue(allImages.Any(x => x.Id == createdImage.Id == false));
@@ -189,12 +184,11 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task DeleteImages()
         {
             //Cleanup
-            var request = "api/Images/";
 
-            if (image != null && image.Id > 0)
+            if (testImage != null && testImage.Id > 0)
             {
-                await _client.DeleteAsync(request + image.Id);
-                image = null;
+                await _client.DeleteAsync(request + testImage.Id);
+                testImage = null;
             }
 
         }

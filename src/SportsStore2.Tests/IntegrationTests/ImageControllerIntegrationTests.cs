@@ -27,26 +27,13 @@ namespace SportsStore2.Tests.IntegrationTests
             var basePath = PlatformServices.Default.Application.ApplicationBasePath;
             var projectPath = Path.GetFullPath(Path.Combine(basePath, "../../../../SportsStore2.Tests"));
 
-            var server = new TestServer(GetHostBuilder(new string[] { })
+            var server = new TestServer(Utils.GetHostBuilder(new string[] { })
                 .UseContentRoot(projectPath)
                 .UseEnvironment("Development")
                 .UseStartup<Startup>());
 
             _client = server.CreateClient();
 
-        }
-
-        private static IWebHostBuilder GetHostBuilder(string[] args)
-        {
-            var config = new ConfigurationBuilder()
-                       .AddCommandLine(args)
-                       .AddEnvironmentVariables(prefix: "ASPNETCORE_")
-                       .Build();
-
-            return new WebHostBuilder()
-                .UseConfiguration(config)
-                .UseKestrel()
-                .UseStartup<Startup>();
         }
 
         [Test]
@@ -64,12 +51,25 @@ namespace SportsStore2.Tests.IntegrationTests
         {
             //Arrange 
             var request = "api/Images";
-
+            Image selectedImage = null;
+            
             //Act
             var getResponse = await _client.GetAsync(request + "/Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allImages = JsonConvert.DeserializeObject<List<Image>>(all.Result);
-            var selectedImage = allImages.FirstOrDefault();
+            if (allImages.Count > 0)
+            {
+                selectedImage = allImages.FirstOrDefault();
+            }
+            else
+            {
+                image = new Image { Name = "testImageCreate", Url = "/Brands/adidas_logo_test.png" };
+                var postResponse = await _client.PostAsJsonAsync(request, image);
+                var created = await postResponse.Content.ReadAsStringAsync();
+                selectedImage = JsonConvert.DeserializeObject<Image>(created);
+
+                image.Id = selectedImage.Id;
+            }
 
             var getResponseOneImage = await _client.GetAsync(request + "/Get/" + selectedImage.Id);
             var fetched = await getResponseOneImage.Content.ReadAsStringAsync();

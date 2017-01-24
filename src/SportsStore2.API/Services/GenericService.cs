@@ -27,18 +27,21 @@ namespace SportsStore2.API.Services
 
         public async Task<T> GetById<TKey>(
             Expression<Func<T, bool>> filter = null, 
-            string includeProperties = "", 
-            bool noTracking = false)
+            string includeProperties = "")
         {
-            return await _genericRepository.Get<T>(filter, includeProperties, noTracking);
+            return await _genericRepository.Get<T>(filter, includeProperties);
         }
 
-        public async Task<bool> Add(T entity, Expression<Func<T, bool>> filter = null)
+        public bool Add(T entity, Expression<Func<T, bool>> filter = null)
         {
-            var existing = await _genericRepository.Get<T>(filter);
-            if (existing != null) return false;
-
-            _genericRepository.Add(entity);
+            try
+            {
+                _genericRepository.Add(entity, filter);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
             return true;
         }
 

@@ -8,7 +8,9 @@
     "SportsStore2.API": "1.0.0-*",
     "Moq": "4.6.38-alpha",
     "Microsoft.AspNetCore.TestHost": "1.1.0",
-    "Microsoft.Extensions.Configuration.CommandLine": "1.1.0"
+    "Microsoft.Extensions.Configuration.CommandLine": "1.1.0",
+    "Microsoft.AspNet.WebApi.Client": "5.2.3",
+    "System.Runtime.Serialization.Primitives" :  "4.3.0" 
   },
 
   "testRunner": "nunit",

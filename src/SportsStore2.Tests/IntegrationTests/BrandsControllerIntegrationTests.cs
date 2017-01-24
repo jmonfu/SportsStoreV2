@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
+﻿using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.PlatformAbstractions;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using SportsStore2.API;
-using SportsStore2.API.Controllers;
-using SportsStore2.API.Models;
-using SportsStore2.API.Services;
 
 namespace SportsStore2.Tests.IntegrationTests
 {
@@ -49,15 +40,14 @@ namespace SportsStore2.Tests.IntegrationTests
         }
 
         [Test]
-        public async Task MyFirstIntegrationTest()
+        public async Task Get_ReturnsAListOfBrands_BrandsController()
         {
             var request = "api/Brands/Get";
-
             var response = await _client.GetAsync(request);
-
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
         }
+
     }
 }

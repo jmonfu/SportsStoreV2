@@ -13,11 +13,9 @@ namespace SportsStore2.API.Services
 
         Task<T> GetById<TKey>(
             Expression<Func<T, bool>> filter = null, 
-            string includeProperties = "", 
-            bool noTracking = false);
+            string includeProperties = "");
 
-        Task<bool> Add(T entity, Expression<Func<T, bool>> filter = null);
+        bool Add(T entity, Expression<Func<T, bool>> filter = null);
         bool Update(T entity);
-        void Delete(T entity);
-    }
+        void Delete(T entity);    }
 }

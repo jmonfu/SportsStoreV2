@@ -11,7 +11,7 @@ using SportsStore2.API.Services;
 namespace SportsStore2.API.Controllers
 {
     [Produces("application/json")]
-    [Route("api/[controller]")]
+    [Route("api/Brands")]
     public class BrandsController : Controller
     {
         private readonly IGenericService<Brand> _brandsService;
@@ -42,10 +42,10 @@ namespace SportsStore2.API.Controllers
                 return BadRequest();
 
             var result = _brandsService.Add(brand, m => m.Name == brand.Name);
-
-            if (result.Status == TaskStatus.Created)
+            if (result)
             {
                 return CreatedAtRoute("GetBrands", new { id = brand.Id }, brand);
+
             }
             return BadRequest("Item not added");
         }

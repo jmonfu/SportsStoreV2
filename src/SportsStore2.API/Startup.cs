@@ -49,9 +49,6 @@ namespace SportsStore2.API
             var connection = @" Server=.;Database=SportsStore2;Trusted_Connection=True;MultipleActiveResultSets=true";
             services.AddDbContext<SportsStore2Context>(options => options.UseSqlServer(connection));
 
-            // Add framework services.
-            //services.AddApplicationInsightsTelemetry(Configuration);
-
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
@@ -63,6 +60,7 @@ namespace SportsStore2.API
                 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
+
             services.AddEntityFramework().AddDbContext<SportsStore2Context>(
                 options => options.UseSqlServer(Configuration["Data:DefaultConnection:ConnectionString"])
                 );
@@ -93,6 +91,8 @@ namespace SportsStore2.API
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
 
+                SeedData.Initialize(app.ApplicationServices);
+
             }
             else
             {
@@ -114,7 +114,6 @@ namespace SportsStore2.API
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-            SeedData.Initialize(app.ApplicationServices);
         }
     }
 }

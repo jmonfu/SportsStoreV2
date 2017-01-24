@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportsStore2.API.Models;
@@ -20,42 +21,24 @@ namespace SportsStore2.API.Repository
             DbSet = context.Set<T>();
         }
 
-        public async Task<T> Get<TKey>(Expression<Func<T, bool>> filter = null, string includeProperties = "", bool noTracking = false)
+        public async Task<T> Get<TKey>(Expression<Func<T, bool>> filter = null, string includeProperties = "")
 
         {
-            includeProperties = includeProperties.Trim() ?? string.Empty;
             IQueryable<T> query = Context.Set<T>();
-
-            if (noTracking)
-            {
-                query.AsNoTracking();
-            }
+            query = IncludePropertiesQuery(query, includeProperties);
 
             if (filter != null)
             {
                 query = query.Where(filter);
             }
 
-            foreach (var includeProperty in includeProperties.Split
-                (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                query = query.Include(includeProperty);
-            }
-
             return await query.SingleOrDefaultAsync();
         }
 
-        public async Task<List<T>> GetAll(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = null)
+        public async Task<List<T>> GetAll(Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "")
         {
-            //m => m.OrderBy(o => o.Property1).ThenBy(o => o.Property2)
-            includeProperties = includeProperties ?? string.Empty;
             IQueryable<T> query = Context.Set<T>();
-
-            foreach (var includeProperty in includeProperties.Split
-                (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                query = query.Include(includeProperty);
-            }
+            query = IncludePropertiesQuery(query, includeProperties);
 
             if (orderBy != null)
             {
@@ -66,14 +49,18 @@ namespace SportsStore2.API.Repository
             return collection;
         }
 
-        public void Add(T entity)
+        public void Add(T entity, Expression<Func<T, bool>> filter = null)
         {
-            Context.Set<T>().Add(entity);
+            var existing = Get<T>(filter);
+            if (existing.Result != null) return;
+            Context.Add(entity);
             Save();
         }
 
+
         public void Update(T entity)
         {
+
             Context.Set<T>().Update(entity);
             Save();
         }
@@ -92,7 +79,33 @@ namespace SportsStore2.API.Repository
 
         private void Save()
         {
-            Context.SaveChanges();
+            try
+            {
+                Context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        private IQueryable<T> IncludePropertiesQuery(IQueryable<T> query, string includeProperties = "")
+        {
+            if (includeProperties == null)
+            {
+                includeProperties = "";
+            }
+
+            includeProperties = includeProperties.Trim() ?? string.Empty;
+            foreach (var includeProperty in includeProperties.Split
+                (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+
+            return query;
+
         }
 
     }

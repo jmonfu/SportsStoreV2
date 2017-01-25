@@ -10,10 +10,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.PlatformAbstractions;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
 using SportsStore2.API;
 using SportsStore2.API.Models;
-using Test = Microsoft.Extensions.Testing.Abstractions.Test;
 
 namespace SportsStore2.Tests.IntegrationTests
 {

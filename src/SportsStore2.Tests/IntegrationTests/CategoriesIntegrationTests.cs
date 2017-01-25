@@ -16,7 +16,6 @@ using SportsStore2.API.Models;
 namespace SportsStore2.Tests.IntegrationTests
 {
     [TestFixture]
-
     public class CategoriesIntegrationTests
     {
         private HttpClient _client;
@@ -109,7 +108,7 @@ namespace SportsStore2.Tests.IntegrationTests
         }
 
         [Test]
-        public async Task Update_UpdateACategoryViaPUT_CountriesController()
+        public async Task Update_UpdateACategoryViaPUT_CategoriesController()
         {
             //Arrange 
 
@@ -145,7 +144,7 @@ namespace SportsStore2.Tests.IntegrationTests
         }
 
         [Test]
-        public async Task Delete_DeleteACategory_CountriesController()
+        public async Task Delete_DeleteACategory_CategoriesController()
         {
             //Arrange 
 

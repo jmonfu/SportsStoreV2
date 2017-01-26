@@ -16,7 +16,7 @@ using SportsStore2.API.Models;
 namespace SportsStore2.Tests.IntegrationTests
 {
     [TestFixture]
-    public class AddressTypeIntegrationTests
+    public class AddressTypeControllerIntegrationTests
     {
         private HttpClient _client;
         private AddressType testAddressType;

@@ -16,7 +16,7 @@ using SportsStore2.API.Models;
 namespace SportsStore2.Tests.IntegrationTests
 {
     [TestFixture]
-    public class CountriesIntegrationTests
+    public class CountriesControllerIntegrationTests
     {
         private HttpClient _client;
         private Country testCountry;

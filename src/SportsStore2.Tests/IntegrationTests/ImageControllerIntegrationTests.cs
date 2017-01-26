@@ -180,6 +180,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(allImages.Any(x => x.Id == createdImage.Id == false));
         }
 
+
         [TearDown]
         public async Task DeleteImages()
         {

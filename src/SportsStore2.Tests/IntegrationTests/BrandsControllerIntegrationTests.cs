@@ -83,7 +83,7 @@ namespace SportsStore2.Tests.IntegrationTests
         }
 
         [Test]
-        public async Task Create_CreateABrand_BrandsController()
+        public async Task Create_CreateABrand_NewImage_BrandsController()
         {
             //Arrange 
 
@@ -94,6 +94,41 @@ namespace SportsStore2.Tests.IntegrationTests
             testBrand.Id = createdBrandObj.Id;
             testBrand.ImageId = createdBrandObj.Image.Id;
             testImage.Id = testBrand.ImageId;
+
+            var getResponse = await _client.GetAsync(request + "Get/" + createdBrandObj.Id);
+            var fetched = await getResponse.Content.ReadAsStringAsync();
+            var fetchedBrand = JsonConvert.DeserializeObject<Brand>(fetched);
+
+            // Assert
+            Assert.IsTrue(postResponseBrand.IsSuccessStatusCode);
+            Assert.IsTrue(getResponse.IsSuccessStatusCode);
+
+            Assert.AreEqual(testBrand.Name, createdBrandObj.Name);
+            Assert.AreEqual(testBrand.Name, fetchedBrand.Name);
+
+            Assert.AreNotEqual(Guid.Empty, createdBrandObj.Id);
+            Assert.AreEqual(createdBrandObj.Id, fetchedBrand.Id);
+        }
+
+        [Test]
+        public async Task Create_CreateABrand_ExistingImage_BrandsController()
+        {
+            //Arrange 
+            //create new image
+            var requestImage = "api/Images/";
+            var postResponseImage = await _client.PostAsJsonAsync(requestImage, testImage);
+            var created = await postResponseImage.Content.ReadAsStringAsync();
+            var createdImage = JsonConvert.DeserializeObject<Image>(created);
+
+            //Act
+            testBrand.Image = createdImage;
+            testBrand.ImageId = createdImage.Id;
+            testImage.Id = createdImage.Id;
+
+            var postResponseBrand = await _client.PostAsJsonAsync(request, testBrand);
+            var createdBrand = await postResponseBrand.Content.ReadAsStringAsync();
+            var createdBrandObj = JsonConvert.DeserializeObject<Brand>(createdBrand);
+            testBrand.Id = createdBrandObj.Id;
 
             var getResponse = await _client.GetAsync(request + "Get/" + createdBrandObj.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();

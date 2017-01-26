@@ -55,6 +55,7 @@ namespace SportsStore2.Tests.UnitTests
                     It.IsAny<Func<IQueryable<Brand>, IOrderedQueryable<Brand>>>(),
                     It.IsAny<string>()
                 )).ReturnsAsync(Brands);
+
             var controller = new BrandsController(mockService.Object);
 
             //Act

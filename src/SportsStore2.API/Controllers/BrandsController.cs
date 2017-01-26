@@ -41,6 +41,10 @@ namespace SportsStore2.API.Controllers
             if (brand == null)
                 return BadRequest();
 
+            // If the image already exists...nullify image so EF won't try to insert a new one...
+            if (brand.ImageId > 0)
+                brand.Image = null;
+
             var result = _brandsService.Add(brand, m => m.Name == brand.Name);
             if (result)
             {

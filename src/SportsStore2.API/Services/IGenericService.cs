@@ -17,5 +17,8 @@ namespace SportsStore2.API.Services
 
         bool Add(T entity, Expression<Func<T, bool>> filter = null);
         bool Update(T entity);
-        void Delete(T entity);    }
+        void Delete(T entity);
+        AspNetUsers CheckUserExists(string userEmail);
+        bool UpdateUserEmailAspnetUsersTable(User aspnetUser);
+    }
 }

@@ -77,6 +77,31 @@ namespace SportsStore2.API.Repository
             Save();
         }
 
+        public AspNetUsers CheckUserExists(string userEmail)
+        {
+            return Context.AspNetUsers.FirstOrDefault(x => x.Email == userEmail);
+        }
+
+        public string GetUserIdFromAspNetUsers(string userEmail)
+        {
+            var aspnetUser = Context.AspNetUsers.FirstOrDefault(x => x.Email == userEmail);
+            return aspnetUser.Id;
+        }
+
+        public bool UpdateUserEmailAspnetUsersTable(User user)
+        {
+            var aspnetUser = Context.AspNetUsers.FirstOrDefault(x => x.Id == user.ASPNETUsersId);
+            if (aspnetUser != null)
+            {
+                aspnetUser.Email = user.Email;
+                aspnetUser.NormalizedEmail = user.Email.ToUpper();
+                Context.Update(aspnetUser);
+                Save();
+                return true;
+            }
+            return false;
+        }
+
         private void Save()
         {
             try

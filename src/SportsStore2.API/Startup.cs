@@ -75,6 +75,7 @@ namespace SportsStore2.API
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient(typeof(IGenericService<>), typeof(GenericService<>));
             services.AddTransient(typeof(IProductsService), typeof(ProductsService));
+            services.AddTransient(typeof(IUsersService), typeof(UsersService));
 
         }
 

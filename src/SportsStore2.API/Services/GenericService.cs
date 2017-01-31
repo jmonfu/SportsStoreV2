@@ -8,7 +8,7 @@ using SportsStore2.API.Repository;
 
 namespace SportsStore2.API.Services
 {
-    public class GenericService<T> : IGenericService<T>  where T : class
+    public class GenericService<T> : IGenericService<T> where T : class
     {
         private readonly IGenericRepository<T> _genericRepository;
 
@@ -18,15 +18,15 @@ namespace SportsStore2.API.Services
         }
 
         public async Task<List<T>> GetAll(
-            Func<IQueryable<T>, 
-            IOrderedQueryable<T>> orderBy = null, 
+            Func<IQueryable<T>,
+                IOrderedQueryable<T>> orderBy = null,
             string includeProperties = null)
         {
             return await _genericRepository.GetAll(orderBy, includeProperties);
         }
 
         public async Task<T> GetById<TKey>(
-            Expression<Func<T, bool>> filter = null, 
+            Expression<Func<T, bool>> filter = null,
             string includeProperties = "")
         {
             return await _genericRepository.Get<T>(filter, includeProperties);
@@ -56,6 +56,15 @@ namespace SportsStore2.API.Services
             _genericRepository.Delete(entity);
         }
 
-    }
+        public AspNetUsers CheckUserExists(string userEmail)
+        {
+            return _genericRepository.CheckUserExists(userEmail);
+        }
 
+        public bool UpdateUserEmailAspnetUsersTable(User aspnetUser)
+        {
+            return _genericRepository.UpdateUserEmailAspnetUsersTable(aspnetUser);
+        }
+
+    }
 }

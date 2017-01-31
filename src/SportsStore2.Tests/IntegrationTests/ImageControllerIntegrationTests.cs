@@ -16,6 +16,7 @@ using SportsStore2.API.Models;
 
 namespace SportsStore2.Tests.IntegrationTests
 {
+    [TestFixture]
     public class ImageControllerIntegrationTests
     {
         private HttpClient _client;

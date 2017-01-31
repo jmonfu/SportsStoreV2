@@ -11,12 +11,16 @@ namespace SportsStore2.API.Models
         }
 
         public long Id { get; set; }
+        public string ASPNETUsersId { get; set; }
+
         public string Name { get; set; }
         public string Surname { get; set; }
         public string Email { get; set; }
-        public short? HomeNo { get; set; }
-        public short? MobNo { get; set; }
+        public string HomeNo { get; set; }
+        public string MobNo { get; set; }
 
         public virtual ICollection<Address> Address { get; set; }
+        public virtual AspNetUsers AspNetUsers { get; set; }
+
     }
 }

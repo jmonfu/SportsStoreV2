@@ -13,9 +13,9 @@ namespace SportsStore2.API.Controllers
     [Route("api/Address")]
     public class AddressController : Controller
     {
-        private readonly IGenericService<Address> _addressService;
+        private readonly IAddressService _addressService;
 
-        public AddressController(IGenericService<Address> addressService)
+        public AddressController(IAddressService addressService)
         {
             _addressService = addressService;
         }
@@ -40,7 +40,15 @@ namespace SportsStore2.API.Controllers
             if (address == null)
                 return BadRequest();
 
-            var result = _addressService.Add(address);
+            var result = _addressService.Add(address, 
+                m => m.Address1 == address.Address1 
+                && m.Address2 == address.Address2
+                && m.Address3 == address.Address3
+                && m.AddressTypeId == address.AddressTypeId
+                && m.CountryId == address.CountryId
+                && m.City == address.City
+                );
+
             if (result)
             {
                 return CreatedAtRoute("GetAddress", new { id = address.Id }, address);

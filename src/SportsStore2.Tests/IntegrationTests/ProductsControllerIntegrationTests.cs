@@ -231,7 +231,7 @@ namespace SportsStore2.Tests.IntegrationTests
             }
             else
             {
-                //create new image
+                //create new image (exisiting image for this product)
                 var postResponseProductImage = await _client.PostAsJsonAsync(requestImage, testImageProduct);
                 var createdProductImage = await postResponseProductImage.Content.ReadAsStringAsync();
                 selectedImage = JsonConvert.DeserializeObject<Image>(createdProductImage);
@@ -241,7 +241,7 @@ namespace SportsStore2.Tests.IntegrationTests
             testProduct.ImageId = selectedImage.Id;
             testImageProduct = selectedImage;
 
-            //create new image
+            //create a new brand image
             var postResponseImage = await _client.PostAsJsonAsync(requestImage, testImageBrand);
             var created = await postResponseImage.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
@@ -366,6 +366,7 @@ namespace SportsStore2.Tests.IntegrationTests
             testBrand = createdProduct.Brand;
             testImageBrand = createdProduct.Brand.Image;
             testImageProduct = createdProduct.Image;
+            testCategory = createdProduct.Category;
 
             //Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);

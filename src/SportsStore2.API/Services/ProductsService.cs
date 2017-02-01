@@ -20,8 +20,6 @@ namespace SportsStore2.API.Services
             if (product.Brand?.ImageId > 0)
                 product.Brand.Image = null;
 
-            if (product.Image == null) return Add(product, filter);
-
             if (product.Image.Id > 0)
                 product.Image = null;
 

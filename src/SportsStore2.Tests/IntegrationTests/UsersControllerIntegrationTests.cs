@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -13,6 +14,7 @@ using NUnit.Framework;
 using NUnit.Framework.Internal;
 using SportsStore2.API;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 
 namespace SportsStore2.Tests.IntegrationTests
 {
@@ -20,9 +22,9 @@ namespace SportsStore2.Tests.IntegrationTests
     public class UsersControllerIntegrationTests
     {
         private HttpClient _client;
-        private User testUser;
-        private User testUserUpdated;
-        private string request;
+        private User _testUser;
+        private User _testUserUpdated;
+        private string _request;
 
         [SetUp]
         public void Setup()
@@ -37,31 +39,31 @@ namespace SportsStore2.Tests.IntegrationTests
 
             _client = server.CreateClient();
 
-            testUser = new User {
-                Name = "Johann",
-                Surname = "Montfort",
-                Email = "jmonfu@gmail.com",
-                HomeNo = "07460634348",
-                MobNo = "02460634348"
+            _testUser = new User {
+                Name = Enums.GetEnumDescription(Enums.UserTestData.Name),
+                Surname = Enums.GetEnumDescription(Enums.UserTestData.Surname),
+                Email = Enums.GetEnumDescription(Enums.UserTestData.Email),
+                HomeNo = Enums.GetEnumDescription(Enums.UserTestData.HomeNo),
+                MobNo = Enums.GetEnumDescription(Enums.UserTestData.MobNo)
             };
 
-            testUserUpdated = new User
+            _testUserUpdated = new User
             {
-                Name = "testUserNameUpdated",
-                Surname = "testUserSurnameUpdated",
-                Email = "testEmailUpdated@gmail.com",
-                HomeNo = "000000000",
-                MobNo = "000000000"
+                Name = Enums.GetEnumDescription(Enums.UserUpatedTestData.Name),
+                Surname = Enums.GetEnumDescription(Enums.UserUpatedTestData.Surname),
+                Email = Enums.GetEnumDescription(Enums.UserUpatedTestData.Email),
+                HomeNo = Enums.GetEnumDescription(Enums.UserUpatedTestData.HomeNo),
+                MobNo = Enums.GetEnumDescription(Enums.UserUpatedTestData.MobNo)
             };
 
-            request = "api/Users/";
+            _request = Enums.GetEnumDescription(Enums.Requests.User);
         }
 
         [Test]
         public async Task Get_ReturnsAListOfUsers_UsersController()
         {
-            request = request + "Get";
-            var response = await _client.GetAsync(request);
+            _request = _request + "Get";
+            var response = await _client.GetAsync(_request);
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -71,33 +73,16 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneUser_UsersController()
         {
             //Arrange 
-            User selectedUser = null;
+            _testUser = await InsertIfNotAny(_testUser);
 
             //Act
-            var getResponse = await _client.GetAsync(request + "Get");
-            var all = getResponse.Content.ReadAsStringAsync();
-            var allUsers = JsonConvert.DeserializeObject<List<User>>(all.Result);
-            if (allUsers.Count > 0)
-            {
-                selectedUser = allUsers.FirstOrDefault();
-            }
-            else
-            {
-                var postResponse = await _client.PostAsJsonAsync(request, testUser);
-                var created = await postResponse.Content.ReadAsStringAsync();
-                selectedUser = JsonConvert.DeserializeObject<User>(created);
-
-                testUser.Id = selectedUser.Id;
-            }
-
-            var getResponseOneUser = await _client.GetAsync(request + "Get/" + selectedUser.Id);
+            var getResponseOneUser = await _client.GetAsync(_request + "Get/" + _testUser.Id);
             var fetched = await getResponseOneUser.Content.ReadAsStringAsync();
             var fetchedUser = JsonConvert.DeserializeObject<User>(fetched);
 
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponseOneUser.IsSuccessStatusCode);
-            Assert.AreEqual(selectedUser.Id, fetchedUser.Id);
-            Assert.AreEqual(selectedUser.Name, fetchedUser.Name);
+            Assert.AreEqual(_testUser.Id, fetchedUser.Id);
+            Assert.AreEqual(_testUser.Name, fetchedUser.Name);
 
         }
 
@@ -107,8 +92,8 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            testUser.Email = "test@test.com";
-            var postResponse = await _client.PostAsJsonAsync(request, testUser);
+            _testUser.Email = Enums.GetEnumDescription(Enums.UserUpatedTestData.Email);
+            var postResponse = await _client.PostAsJsonAsync(_request + "Create", _testUser);
 
             // Assert
             Assert.IsTrue(postResponse.StatusCode == HttpStatusCode.BadRequest);
@@ -118,28 +103,21 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Create_CreateAUser_ExistingEmailInAspNetUsers_UsersController()
         {
             //Arrange 
+            //Create a User in AspNetUsers table
+            _testUser = await InsertNewUserAndAspNetUser(_testUser);
 
-            //Act
-
-            var postResponse = await _client.PostAsJsonAsync(request, testUser);
-            var created = await postResponse.Content.ReadAsStringAsync();
-            var createdUser = JsonConvert.DeserializeObject<User>(created);
-
-            testUser.Id = createdUser.Id;
-
-            var getResponse = await _client.GetAsync(request + "Get/" + createdUser.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testUser.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedUser = JsonConvert.DeserializeObject<User>(fetched);
 
             // Assert
-            Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testUser.Name, createdUser.Name);
-            Assert.AreEqual(testUser.Name, fetchedUser.Name);
+            Assert.AreEqual(_testUser.Name, _testUser.Name);
+            Assert.AreEqual(_testUser.Name, fetchedUser.Name);
 
-            Assert.AreNotEqual(Guid.Empty, createdUser.Id);
-            Assert.AreEqual(createdUser.Id, fetchedUser.Id);
+            Assert.AreNotEqual(Guid.Empty, _testUser.Id);
+            Assert.AreEqual(_testUser.Id, fetchedUser.Id);
         }
 
         [Test]
@@ -148,15 +126,10 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            //insert Test User in the User Table
-            var postResponse = await _client.PostAsJsonAsync(request, testUser);
-            var created = await postResponse.Content.ReadAsStringAsync();
-            var createdUser = JsonConvert.DeserializeObject<User>(created);
-
-            testUser.Id = createdUser.Id;
-
+            //insert Test User in the User Table and AspNetUsers Table
+            _testUser = await InsertNewUserAndAspNetUser(_testUser);
             //try to insert the same user in the User Table, should throw an error
-            var postResponseSameUser = await _client.PostAsJsonAsync(request, testUser);
+            var postResponseSameUser = await _client.PostAsJsonAsync(_request + "Create", _testUser);
 
             // Assert
             Assert.IsTrue(postResponseSameUser.StatusCode == HttpStatusCode.BadRequest);
@@ -169,43 +142,40 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testUser);
-            var created = await postResponse.Content.ReadAsStringAsync();
-            var createdUser = JsonConvert.DeserializeObject<User>(created);
+            var createdUser = await InsertNewUserAndAspNetUser(_testUser);
 
             //PUT(Update)
-            testUserUpdated.Id = createdUser.Id;
-            testUserUpdated.ASPNETUsersId = createdUser.ASPNETUsersId;
+            _testUserUpdated.Id = createdUser.Id;
+            _testUserUpdated.ASPNETUsersId = createdUser.ASPNETUsersId;
 
-            var putResponse = await _client.PutAsJsonAsync(request + createdUser.Id, testUserUpdated);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdUser.Id, _testUserUpdated);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + testUserUpdated.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testUserUpdated.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedUser = JsonConvert.DeserializeObject<User>(fetched);
 
-            testUserUpdated.Id = fetchedUser.Id;
+            _testUserUpdated.Id = fetchedUser.Id;
 
             // Assert
-            Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(putResponse.IsSuccessStatusCode);
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("Johann", createdUser.Name);
-            Assert.AreEqual("testUserNameUpdated", fetchedUser.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserTestData.Name), createdUser.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserUpatedTestData.Name), fetchedUser.Name);
 
-            Assert.AreEqual("Montfort", createdUser.Surname);
-            Assert.AreEqual("testUserSurnameUpdated", fetchedUser.Surname);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserTestData.Surname), createdUser.Surname);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserUpatedTestData.Surname), fetchedUser.Surname);
 
-            Assert.AreEqual("jmonfu@gmail.com", createdUser.Email);
-            Assert.AreEqual("testEmailUpdated@gmail.com", fetchedUser.Email);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserTestData.Email), createdUser.Email);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserUpatedTestData.Email), fetchedUser.Email);
 
-            Assert.AreEqual("07460634348", createdUser.HomeNo);
-            Assert.AreEqual("000000000", fetchedUser.HomeNo);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserTestData.HomeNo), createdUser.HomeNo);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserUpatedTestData.HomeNo), fetchedUser.HomeNo);
 
-            Assert.AreEqual("02460634348", createdUser.MobNo);
-            Assert.AreEqual("000000000", fetchedUser.MobNo);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserTestData.MobNo), createdUser.MobNo);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.UserUpatedTestData.MobNo), fetchedUser.MobNo);
         }
 
         [Test]
@@ -215,44 +185,89 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testUser);
-            var created = await postResponse.Content.ReadAsStringAsync();
-            var createdUser = JsonConvert.DeserializeObject<User>(created);
+            var createdUser = await InsertNewUserAndAspNetUser(_testUser);
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request + createdUser.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request + createdUser.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allUsers = JsonConvert.DeserializeObject<List<User>>(all.Result);
 
             //Assert
-            Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(deleteResponse.IsSuccessStatusCode);
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testUser.Name, createdUser.Name);
+            Assert.AreEqual(_testUser.Name, createdUser.Name);
             Assert.AreNotEqual(Guid.Empty, createdUser.Id);
 
             if(allUsers.Count > 0)
                 Assert.IsTrue(allUsers.Any(x => x.Id == createdUser.Id == false));
         }
 
+        private async Task<User> InsertIfNotAny(User user)
+        {
+            var getResponse = await _client.GetAsync(_request + "Get");
+            var all = getResponse.Content.ReadAsStringAsync();
+            var allUsers = JsonConvert.DeserializeObject<List<User>>(all.Result);
+            if (allUsers.Count > 0)
+            {
+                _testUser = allUsers.FirstOrDefault();
+            }
+            else
+            {
+                _testUser = await InsertNewUserAndAspNetUser(user);
+            }
+            return _testUser;
+        }
+
+        private async Task<User> InsertNewUserAndAspNetUser(User user)
+        {
+            var registerViewModel = new RegisterViewModel
+            {
+                ConfirmPassword = "Password@123",
+                Email = user.Email,
+                Password = "Password@123"
+            };
+            var postResponse = await _client.PostAsJsonAsync(_request + "CreateAspNetUsers", registerViewModel);
+            var created = await postResponse.Content.ReadAsStringAsync();
+            var createdUser = JsonConvert.DeserializeObject<AspNetUsers>(created);
+
+
+            if (createdUser != null)
+                return await InsertNewUser(user);
+
+            return null;
+        }
+
+        private async Task<User> InsertNewUser(User user)
+        {
+            var postResponse = await _client.PostAsJsonAsync(_request + "Create", user);
+            var created = await postResponse.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<User>(created);
+        }
+
         [TearDown]
         public async Task DeleteUsers()
         {
             //Cleanup
-            if (testUserUpdated != null && testUserUpdated.Id > 0)
+            if (_testUserUpdated != null && _testUserUpdated.Id > 0
+                && (_testUserUpdated.Name == Enums.GetEnumDescription(Enums.UserTestData.Name)
+                || _testUserUpdated.Name == Enums.GetEnumDescription(Enums.UserUpatedTestData.Name)))
             {
                 //update the ASPNET User back to the original state
-                testUser.Id = testUserUpdated.Id;
-                testUser.ASPNETUsersId = testUserUpdated.ASPNETUsersId;
-                await _client.PutAsJsonAsync(request + testUserUpdated.Id, testUser);
+                _testUser.Id = _testUserUpdated.Id;
+                _testUser.ASPNETUsersId = _testUserUpdated.ASPNETUsersId;
+                await _client.PutAsJsonAsync(_request + _testUserUpdated.Id, _testUser);
             }
-            if (testUser != null && testUser.Id > 0)
+
+            if (_testUser != null && _testUser.Id > 0
+
+                && (_testUser.Name == Enums.GetEnumDescription(Enums.UserTestData.Name)
+                || _testUser.Name == Enums.GetEnumDescription(Enums.UserUpatedTestData.Name)))
             {
-                await _client.DeleteAsync(request + testUser.Id);
-                testUser = null;
+                await _client.DeleteAsync(_request + _testUser.Id);
+                _testUser = null;
             }
 
         }

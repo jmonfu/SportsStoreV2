@@ -4,9 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting.Internal;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 
 namespace SportsStore2.API.Repository
 {
@@ -88,6 +90,38 @@ namespace SportsStore2.API.Repository
             return aspnetUser.Id;
         }
 
+        public bool AddAspNetUsers(RegisterViewModel registerViewModel)
+        {
+            var applicationUser = new ApplicationUser
+            {
+                
+            };
+            var passwordHash = new PasswordHasher<ApplicationUser>();
+            var password = passwordHash.HashPassword(applicationUser, registerViewModel.Email);
+
+            Context.AspNetUsers.Add(new AspNetUsers
+            {
+                Email = registerViewModel.Email,
+                EmailConfirmed = true,
+                NormalizedEmail = registerViewModel.Email.ToUpper(),
+                NormalizedUserName = registerViewModel.Email.ToUpper(),
+                PasswordHash = password,
+                PhoneNumber = null,
+                PhoneNumberConfirmed = false,
+                TwoFactorEnabled = false,
+                UserName = registerViewModel.Email
+            });
+            try
+            {
+                Save();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
         public bool UpdateUserEmailAspnetUsersTable(User user)
         {
             var aspnetUser = Context.AspNetUsers.FirstOrDefault(x => x.Id == user.ASPNETUsersId);
@@ -101,6 +135,7 @@ namespace SportsStore2.API.Repository
             }
             return false;
         }
+
 
         private void Save()
         {

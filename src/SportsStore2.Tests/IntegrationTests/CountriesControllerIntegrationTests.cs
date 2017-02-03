@@ -19,8 +19,8 @@ namespace SportsStore2.Tests.IntegrationTests
     public class CountriesControllerIntegrationTests
     {
         private HttpClient _client;
-        private Country testCountry;
-        private string request ;
+        private Country _testCountry;
+        private string _request ;
 
         [SetUp]
         public void Setup()
@@ -34,14 +34,19 @@ namespace SportsStore2.Tests.IntegrationTests
                 .UseStartup<Startup>());
 
             _client = server.CreateClient();
-            testCountry = new Country { Name = "testCountry", Code = "TC", Type = "General" };
-            request = "api/Countries/";
+            _testCountry = new Country
+            {
+                Name = Enums.GetEnumDescription(Enums.CountryTestData.Name),
+                Code = Enums.GetEnumDescription(Enums.CountryTestData.Code),
+                Type = Enums.GetEnumDescription(Enums.CountryTestData.Type)
+            };
+            _request = Enums.GetEnumDescription(Enums.Requests.Countries);
         }
 
         [Test]
         public async Task Get_ReturnsAListOfCountries_CountriesController()
         {
-            var response = await _client.GetAsync(request + "Get");
+            var response = await _client.GetAsync(_request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -51,33 +56,16 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneCountry_CountriesController()
         {
             //Arrange 
-            Country selectedCountry = null;
+            _testCountry = await InsertIfNotAny();
 
             //Act
-            var getResponse = await _client.GetAsync(request + "Get");
-            var all = getResponse.Content.ReadAsStringAsync();
-            var allCountries = JsonConvert.DeserializeObject<List<Country>>(all.Result);
-            if (allCountries.Count > 0)
-            {
-                selectedCountry = allCountries.FirstOrDefault();
-            }
-            else
-            {
-                var postResponse = await _client.PostAsJsonAsync(request, testCountry);
-                var created = await postResponse.Content.ReadAsStringAsync();
-                selectedCountry = JsonConvert.DeserializeObject<Country>(created);
-
-                testCountry.Id = selectedCountry.Id;
-            }
-
-            var getResponseOneCountry = await _client.GetAsync(request + "Get/" + selectedCountry.Id);
+            var getResponseOneCountry = await _client.GetAsync(_request + "Get/" + _testCountry.Id);
             var fetched = await getResponseOneCountry.Content.ReadAsStringAsync();
             var fetchedCountry = JsonConvert.DeserializeObject<Country>(fetched);
 
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponseOneCountry.IsSuccessStatusCode);
-            Assert.AreEqual(selectedCountry.Id, fetchedCountry.Id);
-            Assert.AreEqual(selectedCountry.Name, fetchedCountry.Name);
+            Assert.AreEqual(_testCountry.Id, fetchedCountry.Id);
+            Assert.AreEqual(_testCountry.Name, fetchedCountry.Name);
 
         }
 
@@ -87,13 +75,13 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testCountry);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCountry);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCountry = JsonConvert.DeserializeObject<Country>(created);
 
-            testCountry.Id = createdCountry.Id;
+            _testCountry.Id = createdCountry.Id;
 
-            var getResponse = await _client.GetAsync(request + "Get/" + createdCountry.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdCountry.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedCountry = JsonConvert.DeserializeObject<Country>(fetched);
 
@@ -101,11 +89,11 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testCountry.Name, createdCountry.Name);
-            Assert.AreEqual(testCountry.Name, fetchedCountry.Name);
+            Assert.AreEqual(_testCountry.Name, createdCountry.Name);
+            Assert.AreEqual(_testCountry.Name, fetchedCountry.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdCountry.Id);
-            Assert.AreEqual(testCountry.Id, fetchedCountry.Id);
+            Assert.AreEqual(_testCountry.Id, fetchedCountry.Id);
         }
 
         [Test]
@@ -115,23 +103,23 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testCountry);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCountry);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCountry = JsonConvert.DeserializeObject<Country>(created);
 
             //PUT(Update)
-            testCountry.Id = createdCountry.Id;
-            testCountry.Name = "testCountryUpdated";
-            testCountry.Code = "UP";
-            testCountry.Type = "Updated";
-            var putResponse = await _client.PutAsJsonAsync(request + createdCountry.Id, testCountry);
+            _testCountry.Id = createdCountry.Id;
+            _testCountry.Name = Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Name);
+            _testCountry.Code = Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Code);
+            _testCountry.Type = Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Type);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdCountry.Id, _testCountry);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + testCountry.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testCountry.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedCountry = JsonConvert.DeserializeObject<Country>(fetched);
 
-            testCountry.Id = fetchedCountry.Id;
+            _testCountry.Id = fetchedCountry.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -139,9 +127,9 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("testCountryUpdated", fetchedCountry.Name);
-            Assert.AreEqual("UP", fetchedCountry.Code);
-            Assert.AreEqual("Updated", fetchedCountry.Type);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Name), fetchedCountry.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Code), fetchedCountry.Code);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Type), fetchedCountry.Type);
 
             Assert.AreNotEqual(Guid.Empty, createdCountry.Id);
             Assert.AreEqual(createdCountry.Id, fetchedCountry.Id);
@@ -155,13 +143,13 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testCountry);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCountry);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCountry = JsonConvert.DeserializeObject<Country>(created);
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request + createdCountry.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request + createdCountry.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allCountries = JsonConvert.DeserializeObject<List<Country>>(all.Result);
 
@@ -171,10 +159,29 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testCountry.Name, createdCountry.Name);
+            Assert.AreEqual(_testCountry.Name, createdCountry.Name);
             Assert.AreNotEqual(Guid.Empty, createdCountry.Id);
 
             Assert.IsTrue(allCountries.Any(x => x.Id == createdCountry.Id == false));
+        }
+
+        private async Task<Country> InsertIfNotAny()
+        {
+            var getResponse = await _client.GetAsync(_request + "Get");
+            var all = getResponse.Content.ReadAsStringAsync();
+            var allCountries = JsonConvert.DeserializeObject<List<Country>>(all.Result);
+            if (allCountries.Count > 0)
+            {
+                _testCountry = allCountries.FirstOrDefault();
+            }
+            else
+            {
+                var postResponse = await _client.PostAsJsonAsync(_request, _testCountry);
+                var created = await postResponse.Content.ReadAsStringAsync();
+                _testCountry = JsonConvert.DeserializeObject<Country>(created);
+
+            }
+            return _testCountry;
         }
 
 
@@ -182,10 +189,12 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task DeleteCountry()
         {
             //Cleanup
-            if (testCountry != null && testCountry.Id > 0)
+            if (_testCountry != null && _testCountry.Id > 0
+                && (_testCountry.Name == Enums.GetEnumDescription(Enums.CountryTestData.Name)
+                || _testCountry.Name == Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Name)))
             {
-                await _client.DeleteAsync(request + testCountry.Id);
-                testCountry = null;
+                await _client.DeleteAsync(_request + _testCountry.Id);
+                _testCountry = null;
             }
         }
 

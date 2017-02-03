@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 using SportsStore2.API.Repository;
 
 namespace SportsStore2.API.Services
@@ -54,6 +55,11 @@ namespace SportsStore2.API.Services
         public void Delete(T entity)
         {
             _genericRepository.Delete(entity);
+        }
+
+        public bool AddAspNetUsers(RegisterViewModel registerViewModel)
+        {
+            return _genericRepository.AddAspNetUsers(registerViewModel);
         }
 
         public AspNetUsers CheckUserExists(string userEmail)

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 using SportsStore2.API.Services;
 
 namespace SportsStore2.API.Controllers
@@ -14,10 +15,12 @@ namespace SportsStore2.API.Controllers
     public class UsersController : Controller
     {
         private readonly IUsersService _usersService;
+        private readonly IAspNetUsersService _aspNetUsersService;
 
-        public UsersController(IUsersService usersService)
+        public UsersController(IUsersService usersService, IAspNetUsersService aspNetUsersService)
         {
             _usersService = usersService;
+            _aspNetUsersService = aspNetUsersService;
         }
 
         [HttpGet("/api/Users/Get", Name = "GetUsers")]
@@ -34,7 +37,7 @@ namespace SportsStore2.API.Controllers
             return Json(user);
         }
 
-        [HttpPost]
+        [HttpPost("Create")]
         public IActionResult Create([FromBody] User user)
         {
             if (user == null)
@@ -45,6 +48,20 @@ namespace SportsStore2.API.Controllers
             {
                 return CreatedAtRoute("GetUsers", new { id = user.Id }, user);
 
+            }
+            return BadRequest("Item not added");
+        }
+
+        [HttpPost("CreateAspNetUsers")]
+        public IActionResult CreateAspNetUsers([FromBody] RegisterViewModel registerViewModel)
+        {
+            if (registerViewModel == null)
+                return BadRequest();
+
+            var result = _aspNetUsersService.Add(registerViewModel, m => m.Name == registerViewModel.Email);
+            if (result)
+            {
+                return CreatedAtRoute("GetUsers", registerViewModel);
             }
             return BadRequest("Item not added");
         }
@@ -71,6 +88,7 @@ namespace SportsStore2.API.Controllers
 
             var user = _usersService.GetById<User>(m => m.Id == id);
             _usersService.Delete(user.Result);
+            _aspNetUsersService.Delete(user.Result.Email);
             return new NoContentResult();
         }
 

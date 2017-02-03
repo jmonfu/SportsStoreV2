@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -12,6 +13,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using SportsStore2.API;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 
 namespace SportsStore2.Tests.IntegrationTests
 {
@@ -19,12 +21,14 @@ namespace SportsStore2.Tests.IntegrationTests
     public class AddressControllerIntegrationTests
     {
         private HttpClient _client;
-        private Address testAddress;
-        private Country testCountry;
-        private User testUser;
-        private string request;
-        private string requestUser;
-        private string requestCountry;
+        private Address _testAddress;
+        private Country _testCountry;
+        private User _testUser;
+        private AddressType _testAddressType;
+        private string _request;
+        private string _requestUser;
+        private string _requestCountry;
+        private string _requestAddressType;
 
         [SetUp]
         public void Setup()
@@ -38,42 +42,48 @@ namespace SportsStore2.Tests.IntegrationTests
                 .UseStartup<Startup>());
 
             _client = server.CreateClient();
-            testCountry = new Country
+
+            _testCountry = new Country
             {
-                Name = "testCountry",
-                Code = "TT",
-                Type = "1 Tier"
+                Name = Enums.GetEnumDescription(Enums.CountryTestData.Name),
+                Code = Enums.GetEnumDescription(Enums.CountryTestData.Code),
+                Type = Enums.GetEnumDescription(Enums.CountryTestData.Type)
             };
 
-            testUser = new User
+            _testUser = new User
             {
-                Name = "Johann",
-                Surname = "Montfort",
-                Email = "jmonfu@gmail.com",
-                HomeNo = "07460634348",
-                MobNo = "02460634348"
+                Name = Enums.GetEnumDescription(Enums.UserTestData.Name),
+                Surname = Enums.GetEnumDescription(Enums.UserTestData.Surname),
+                Email = Enums.GetEnumDescription(Enums.UserTestData.Email),
+                HomeNo = Enums.GetEnumDescription(Enums.UserTestData.HomeNo),
+                MobNo = Enums.GetEnumDescription(Enums.UserTestData.MobNo)
             };
 
-            testAddress = new Address
+            _testAddress = new Address
             {
-                Address1 = "TestAddress1",
-                Address2 = "TestAddress2",
-                Address3 = "TestAddress3",
-                AddressTypeId = 1,
-                City = "TestCity",
-                PostCode = "E14 2DA"
+                Address1 = Enums.GetEnumDescription(Enums.AddressTestData.Address1),
+                Address2 = Enums.GetEnumDescription(Enums.AddressTestData.Address2),
+                Address3 = Enums.GetEnumDescription(Enums.AddressTestData.Address3),
+                City = Enums.GetEnumDescription(Enums.AddressTestData.City),
+                PostCode = Enums.GetEnumDescription(Enums.AddressTestData.PostCode)
             };
 
-            request = "api/Address/";
-            requestUser = "api/Users/";
-            requestCountry = "api/Countries/";
+            _testAddressType = new AddressType
+            {
+                Name = Enums.GetEnumDescription(Enums.AddressTypeTestData.Name)
+            };
+
+            _request = Enums.GetEnumDescription(Enums.Requests.Address);
+            _requestUser = Enums.GetEnumDescription(Enums.Requests.User);
+            _requestCountry = Enums.GetEnumDescription(Enums.Requests.Countries);
+            _requestAddressType = Enums.GetEnumDescription(Enums.Requests.AddressType);
         }
 
 
         [Test]
         public async Task Get_ReturnsAListOfAddresses_AddressController()
         {
-            var response = await _client.GetAsync(request + "Get");
+            var response = await _client.GetAsync(_request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -83,47 +93,18 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneAddress_AddressController()
         {
             //Arrange 
-            Address selectedAddress = null;
+            _testAddress = await InsertIfNotAny();
 
-            //Act
-            var getResponse = await _client.GetAsync(request + "Get");
-            var all = getResponse.Content.ReadAsStringAsync();
-            var allAddresses = JsonConvert.DeserializeObject<List<Address>>(all.Result);
-            if (allAddresses.Count > 0)
-            {
-                selectedAddress = allAddresses.FirstOrDefault();
-            }
-            else
-            {
-                //insert new country
-                var newCountry = InsertNewCountry().Result;
-                testCountry.Id = newCountry.Id;
-
-                //insert new user
-                var newUser = InsertNewUser().Result;
-                testUser.Id = newUser.Id;
-
-                testAddress.CountryId = testCountry.Id;
-                testAddress.UserId = testUser.Id;
-
-                var postResponse = await _client.PostAsJsonAsync(request, testAddress);
-                var created = await postResponse.Content.ReadAsStringAsync();
-                selectedAddress= JsonConvert.DeserializeObject<Address>(created);
-
-                testAddress.Id = selectedAddress.Id;
-            }
-
-            var getResponseOneAddress = await _client.GetAsync(request + "Get/" + selectedAddress.Id);
+            var getResponseOneAddress = await _client.GetAsync(_request + "Get/" + _testAddress.Id);
             var fetched = await getResponseOneAddress.Content.ReadAsStringAsync();
             var fetchedAddress = JsonConvert.DeserializeObject<Address>(fetched);
 
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponseOneAddress.IsSuccessStatusCode);
-            Assert.AreEqual(selectedAddress.Id, fetchedAddress.Id);
-            Assert.AreEqual(selectedAddress.Address1, fetchedAddress.Address1);
-            Assert.AreEqual(selectedAddress.City, fetchedAddress.City);
-            Assert.AreEqual(selectedAddress.Country, fetchedAddress.Country);
-            Assert.AreEqual(selectedAddress.PostCode, fetchedAddress.PostCode);
+            Assert.AreEqual(_testAddress.Id, fetchedAddress.Id);
+            Assert.AreEqual(_testAddress.Address1, fetchedAddress.Address1);
+            Assert.AreEqual(_testAddress.City, fetchedAddress.City);
+            Assert.AreEqual(_testAddress.Country, fetchedAddress.Country);
+            Assert.AreEqual(_testAddress.PostCode, fetchedAddress.PostCode);
 
         }
 
@@ -132,25 +113,29 @@ namespace SportsStore2.Tests.IntegrationTests
         {
             //Arrange 
             //insert new country
-            var newCountry = InsertNewCountry().Result;
-            testCountry.Id = newCountry.Id;
+            var newCountry = await InsertNewCountry();
+            _testCountry.Id = newCountry.Id;
 
             //insert new user
-            var newUser = InsertNewUser().Result;
-            testUser.Id = newUser.Id;
+            var newUser = await InsertNewUserAndAspNetUser(_testUser);
+            _testUser.Id = newUser.Id;
 
-            testAddress.CountryId = testCountry.Id;
-            testAddress.UserId = testUser.Id;
+            //insert new AddressType
+            var newAddressType = await InsertNewAddressType();
+            _testAddressType.Id = newAddressType.Id;
+
+            _testAddress.CountryId = _testCountry.Id;
+            _testAddress.UserId = _testUser.Id;
+            _testAddress.AddressTypeId = _testAddressType.Id;
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testAddress);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddress);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddress = JsonConvert.DeserializeObject<Address>(created);
 
-            testAddress.Id = createdAddress.Id;
+            _testAddress.Id = createdAddress.Id;
 
-            //for cleanup
-            var getResponse = await _client.GetAsync(request + "Get/" + createdAddress.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdAddress.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedAddress = JsonConvert.DeserializeObject<Address>(fetched);
 
@@ -158,18 +143,18 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testAddress.Address1, createdAddress.Address1);
-            Assert.AreEqual(testAddress.Address1, fetchedAddress.Address1);
-            Assert.AreEqual(testAddress.Address2, createdAddress.Address2);
-            Assert.AreEqual(testAddress.Address2, fetchedAddress.Address2);
-            Assert.AreEqual(testAddress.Address3, createdAddress.Address3);
-            Assert.AreEqual(testAddress.Address3, fetchedAddress.Address3);
-            Assert.AreEqual(testAddress.City, createdAddress.City);
-            Assert.AreEqual(testAddress.City, fetchedAddress.City);
-            Assert.AreEqual(testAddress.Country, createdAddress.Country);
-            Assert.AreEqual(testAddress.Country, fetchedAddress.Country);
-            Assert.AreEqual(testAddress.User, createdAddress.User);
-            Assert.AreEqual(testAddress.User, fetchedAddress.User);
+            Assert.AreEqual(_testAddress.Address1, createdAddress.Address1);
+            Assert.AreEqual(_testAddress.Address1, fetchedAddress.Address1);
+            Assert.AreEqual(_testAddress.Address2, createdAddress.Address2);
+            Assert.AreEqual(_testAddress.Address2, fetchedAddress.Address2);
+            Assert.AreEqual(_testAddress.Address3, createdAddress.Address3);
+            Assert.AreEqual(_testAddress.Address3, fetchedAddress.Address3);
+            Assert.AreEqual(_testAddress.City, createdAddress.City);
+            Assert.AreEqual(_testAddress.City, fetchedAddress.City);
+            Assert.AreEqual(_testAddress.Country, createdAddress.Country);
+            Assert.AreEqual(_testAddress.Country, fetchedAddress.Country);
+            Assert.AreEqual(_testAddress.User, createdAddress.User);
+            Assert.AreEqual(_testAddress.User, fetchedAddress.User);
 
             Assert.AreNotEqual(Guid.Empty, createdAddress.Id);
             Assert.AreEqual(createdAddress.Id, createdAddress.Id);
@@ -179,26 +164,17 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task Create_CreateAnAddress_ExisitingCountryExisitingUser_AddressController()
         {
             //Arrange 
-            //get country, if there aren't any, create one
-            var selectedCountry = await GetCountry();
-
-            //get user, if there aren't any, create one
-            var selectedUser = GetUser();
-
-            testAddress.Country = selectedCountry;
-            testAddress.CountryId = selectedCountry.Id;
-            testAddress.User = selectedUser.Result;
-            testAddress.UserId = selectedUser.Result.Id;
+            _testAddress = await SetTestAddressWithCountryAndUserAndAddressType();
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testAddress);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddress);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddress = JsonConvert.DeserializeObject<Address>(created);
 
-            testAddress.Id = createdAddress.Id;
+            _testAddress.Id = createdAddress.Id;
 
             //for cleanup
-            var getResponse = await _client.GetAsync(request + "Get/" + createdAddress.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdAddress.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedAddress = JsonConvert.DeserializeObject<Address>(fetched);
 
@@ -206,18 +182,18 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testAddress.Address1, createdAddress.Address1);
-            Assert.AreEqual(testAddress.Address1, fetchedAddress.Address1);
-            Assert.AreEqual(testAddress.Address2, createdAddress.Address2);
-            Assert.AreEqual(testAddress.Address2, fetchedAddress.Address2);
-            Assert.AreEqual(testAddress.Address3, createdAddress.Address3);
-            Assert.AreEqual(testAddress.Address3, fetchedAddress.Address3);
-            Assert.AreEqual(testAddress.City, createdAddress.City);
-            Assert.AreEqual(testAddress.City, fetchedAddress.City);
-            Assert.AreEqual(testAddress.CountryId, createdAddress.CountryId);
-            Assert.AreEqual(testAddress.CountryId, fetchedAddress.CountryId);
-            Assert.AreEqual(testAddress.UserId, createdAddress.UserId);
-            Assert.AreEqual(testAddress.UserId, fetchedAddress.UserId);
+            Assert.AreEqual(_testAddress.Address1, createdAddress.Address1);
+            Assert.AreEqual(_testAddress.Address1, fetchedAddress.Address1);
+            Assert.AreEqual(_testAddress.Address2, createdAddress.Address2);
+            Assert.AreEqual(_testAddress.Address2, fetchedAddress.Address2);
+            Assert.AreEqual(_testAddress.Address3, createdAddress.Address3);
+            Assert.AreEqual(_testAddress.Address3, fetchedAddress.Address3);
+            Assert.AreEqual(_testAddress.City, createdAddress.City);
+            Assert.AreEqual(_testAddress.City, fetchedAddress.City);
+            Assert.AreEqual(_testAddress.CountryId, createdAddress.CountryId);
+            Assert.AreEqual(_testAddress.CountryId, fetchedAddress.CountryId);
+            Assert.AreEqual(_testAddress.UserId, createdAddress.UserId);
+            Assert.AreEqual(_testAddress.UserId, fetchedAddress.UserId);
 
             Assert.AreNotEqual(Guid.Empty, createdAddress.Id);
             Assert.AreEqual(createdAddress.Id, createdAddress.Id);
@@ -229,38 +205,31 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange
             //POST(Crete)
 
-            //get country, if there aren't any, create one
-            var selectedCountry = await GetCountry();
-            
-            //get user, if there aren't any, create one
-            var selectedUser = await GetUser();
+            _testAddress = await SetTestAddressWithCountryAndUserAndAddressType();
 
-            testAddress.CountryId = selectedCountry.Id;
-            testAddress.UserId = selectedUser.Id;
-
-            var postResponse = await _client.PostAsJsonAsync(request, testAddress);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddress);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddress = JsonConvert.DeserializeObject<Address>(created);
 
-            testAddress.Id = createdAddress.Id;
+            _testAddress.Id = createdAddress.Id;
 
             var updatedAddress = new Address
             {
                 Id = createdAddress.Id,
                 CountryId = createdAddress.CountryId,
                 UserId = createdAddress.UserId,
-                Address1 = "TestAddress1Updated",
-                Address2 = "TestAddress2Updated",
-                Address3 = "TestAddress3Updated",
-                AddressTypeId = 1,
-                City = "TestCityUpdated",
-                PostCode = "A12 3AA"
+                Address1 = Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address1),
+                Address2 = Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address2),
+                Address3 = Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address3),
+                AddressTypeId = _testAddress.AddressTypeId,
+                City = Enums.GetEnumDescription(Enums.AddressTestDataUpdated.City),
+                PostCode = Enums.GetEnumDescription(Enums.AddressTestDataUpdated.PostCode)
             };
 
-            var putResponse = await _client.PutAsJsonAsync(request + createdAddress.Id, updatedAddress);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdAddress.Id, updatedAddress);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + updatedAddress.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + updatedAddress.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedAddress = JsonConvert.DeserializeObject<Address>(fetched);
 
@@ -270,18 +239,17 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("TestAddress1", createdAddress.Address1);
-            Assert.AreEqual("TestAddress1Updated", fetchedAddress.Address1);
-            Assert.AreEqual("TestAddress2", createdAddress.Address2);
-            Assert.AreEqual("TestAddress2Updated", fetchedAddress.Address2);
-            Assert.AreEqual("TestAddress3", createdAddress.Address3);
-            Assert.AreEqual("TestAddress3Updated", fetchedAddress.Address3);
-            Assert.AreEqual(1, createdAddress.AddressTypeId);
-            Assert.AreEqual(1, fetchedAddress.AddressTypeId);
-            Assert.AreEqual("TestCity", createdAddress.City);
-            Assert.AreEqual("TestCityUpdated", fetchedAddress.City);
-            Assert.AreEqual("E14 2DA", createdAddress.PostCode);
-            Assert.AreEqual("A12 3AA", fetchedAddress.PostCode);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestData.Address1), createdAddress.Address1);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address1), fetchedAddress.Address1);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestData.Address2), createdAddress.Address2);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address2), fetchedAddress.Address2);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestData.Address3), createdAddress.Address3);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address3), fetchedAddress.Address3);
+            Assert.AreEqual(createdAddress.AddressTypeId, fetchedAddress.AddressTypeId);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestData.City), createdAddress.City);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestDataUpdated.City), fetchedAddress.City);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestData.PostCode), createdAddress.PostCode);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTestDataUpdated.PostCode), fetchedAddress.PostCode);
 
             Assert.AreNotEqual(Guid.Empty, createdAddress.Id);
             Assert.AreEqual(createdAddress.Id, fetchedAddress.Id);
@@ -295,24 +263,17 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            //get country, if there aren't any, create one
-            var selectedCountry = await GetCountry();
+            _testAddress = await SetTestAddressWithCountryAndUserAndAddressType();
 
-            //get user, if there aren't any, create one
-            var selectedUser = await GetUser();
-
-            testAddress.CountryId = selectedCountry.Id;
-            testAddress.UserId = selectedUser.Id;
-
-            var postResponse = await _client.PostAsJsonAsync(request, testAddress);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddress);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddress = JsonConvert.DeserializeObject<Address>(created);
 
-            testAddress.Id = createdAddress.Id;
+            _testAddress.Id = createdAddress.Id;
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request+ createdAddress.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request+ createdAddress.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allAddresses = JsonConvert.DeserializeObject<List<Address>>(all.Result);
 
@@ -324,12 +285,12 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testAddress.Address1, createdAddress.Address1);
-            Assert.AreEqual(testAddress.Address2, createdAddress.Address2);
-            Assert.AreEqual(testAddress.Address3, createdAddress.Address3);
-            Assert.AreEqual(testAddress.City, createdAddress.City);
-            Assert.AreEqual(testAddress.Country, createdAddress.Country);
-            Assert.AreEqual(testAddress.User, createdAddress.User);
+            Assert.AreEqual(_testAddress.Address1, createdAddress.Address1);
+            Assert.AreEqual(_testAddress.Address2, createdAddress.Address2);
+            Assert.AreEqual(_testAddress.Address3, createdAddress.Address3);
+            Assert.AreEqual(_testAddress.City, createdAddress.City);
+            Assert.AreEqual(_testAddress.CountryId, createdAddress.CountryId);
+            Assert.AreEqual(_testAddress.UserId, createdAddress.UserId);
             Assert.AreNotEqual(Guid.Empty, createdAddress.Id);
 
             if(allAddresses.Count > 0)
@@ -338,21 +299,47 @@ namespace SportsStore2.Tests.IntegrationTests
 
         private async Task<Country> InsertNewCountry()
         {
-            var postResponse = await _client.PostAsJsonAsync(requestCountry, testCountry);
+            var postResponse = await _client.PostAsJsonAsync(_requestCountry, _testCountry);
             var created = await postResponse.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<Country>(created);
         }
 
-        private async Task<User> InsertNewUser()
+        private async Task<User> InsertNewUserAndAspNetUser(User user)
         {
-            var postResponse = await _client.PostAsJsonAsync(requestUser, testUser);
+            var registerViewModel = new RegisterViewModel
+            {
+                ConfirmPassword = "Password@123",
+                Email = user.Email,
+                Password = "Password@123"
+            };
+            var postResponse = await _client.PostAsJsonAsync(_requestUser + "CreateAspNetUsers", registerViewModel);
+            var created = await postResponse.Content.ReadAsStringAsync();
+            var createdUser = JsonConvert.DeserializeObject<AspNetUsers>(created);
+
+
+            if (createdUser != null)
+                return await InsertNewUser(user);
+
+            return null;
+        }
+
+        private async Task<User> InsertNewUser(User user)
+        {
+            var postResponse = await _client.PostAsJsonAsync(_requestUser + "Create", user);
             var created = await postResponse.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<User>(created);
         }
 
+        private async Task<AddressType> InsertNewAddressType()
+        {
+            var postResponse = await _client.PostAsJsonAsync(_requestAddressType, _testAddressType);
+            var created = await postResponse.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<AddressType>(created);
+        }
+
         private async Task<Country> GetCountry()
         {
-            var getResponseCountry = await _client.GetAsync(requestCountry + "Get");
+            var getResponseCountry = await _client.GetAsync(_requestCountry + "Get");
             var all = getResponseCountry.Content.ReadAsStringAsync();
             var allCountries = JsonConvert.DeserializeObject<List<Country>>(all.Result);
             Country selectedCountry;
@@ -362,8 +349,8 @@ namespace SportsStore2.Tests.IntegrationTests
             }
             else
             {
-                selectedCountry = InsertNewCountry().Result;
-                testCountry.Id = selectedCountry.Id;
+                selectedCountry = await InsertNewCountry();
+                _testCountry.Id = selectedCountry.Id;
             }
 
             return selectedCountry;
@@ -371,7 +358,7 @@ namespace SportsStore2.Tests.IntegrationTests
 
         private async Task<User> GetUser()
         {
-            var getResponseUser = await _client.GetAsync(requestUser + "Get");
+            var getResponseUser = await _client.GetAsync(_requestUser + "Get");
             var allUsers = getResponseUser.Content.ReadAsStringAsync();
             var allUsersObj = JsonConvert.DeserializeObject<List<User>>(allUsers.Result);
             User selectedUser;
@@ -381,35 +368,111 @@ namespace SportsStore2.Tests.IntegrationTests
             }
             else
             {
-                selectedUser = InsertNewUser().Result;
-                testUser.Id = selectedUser.Id;
+                selectedUser = await InsertNewUserAndAspNetUser(_testUser);
+                _testUser.Id = selectedUser.Id;
             }
             return selectedUser;
 
         }
 
+        private async Task<AddressType> GetAddressType()
+        {
+            var getResponseUser = await _client.GetAsync(_requestAddressType + "Get");
+            var allAddressTypes = getResponseUser.Content.ReadAsStringAsync();
+            var allAddressTypesObj = JsonConvert.DeserializeObject<List<AddressType>>(allAddressTypes.Result);
+            AddressType selectedAddressType;
+            if (allAddressTypesObj.Count > 0)
+            {
+                selectedAddressType = allAddressTypesObj.FirstOrDefault();
+            }
+            else
+            {
+                selectedAddressType = await InsertNewAddressType();
+                _testAddressType.Id = selectedAddressType.Id;
+            }
+            return selectedAddressType;
+
+        }
+
+        private async Task<Address> InsertIfNotAny()
+        {
+            //Act
+            var getResponse = await _client.GetAsync(_request + "Get");
+            var all = getResponse.Content.ReadAsStringAsync();
+            var allAddresses = JsonConvert.DeserializeObject<List<Address>>(all.Result);
+            if (allAddresses.Count > 0)
+            {
+                _testAddress = allAddresses.FirstOrDefault();
+            }
+            else
+            {
+                //set testAddress with Country and User
+                _testAddress = await SetTestAddressWithCountryAndUserAndAddressType();
+
+                var postResponse = await _client.PostAsJsonAsync(_request, _testAddress);
+                var created = await postResponse.Content.ReadAsStringAsync();
+                _testAddress = JsonConvert.DeserializeObject<Address>(created);
+            }
+            return _testAddress;
+        }
+
+        private async Task<Address> SetTestAddressWithCountryAndUserAndAddressType()
+        {
+            //get country, if there aren't any, create one
+            var selectedCountry = await GetCountry();
+
+            //get user, if there aren't any, create one
+            var selectedUser = await GetUser();
+
+            //get addressType, if there aren't any, create one
+            var selectedAddressType = await GetAddressType();
+
+            _testAddress.Country = selectedCountry;
+            _testAddress.CountryId = selectedCountry.Id;
+            _testAddress.User = selectedUser;
+            _testAddress.UserId = selectedUser.Id;
+            _testAddress.AddressTypeId = selectedAddressType.Id;
+
+            return _testAddress;
+        }
 
 
         [TearDown]
         public async Task DeleteAddress()
         {
             //Cleanup
-            if (testAddress != null && testAddress.Id > 0)
+            if (_testAddress != null && _testAddress.Id > 0
+                    && (_testAddress.Address1 == Enums.GetEnumDescription(Enums.AddressTestData.Address1) 
+                    || _testAddress.Address1 == Enums.GetEnumDescription(Enums.AddressTestDataUpdated.Address1)))
+
             {
-                await _client.DeleteAsync(request + testAddress.Id);
-                testAddress = null;
+                await _client.DeleteAsync(_request + _testAddress.Id);
+                _testAddress = null;
             }
 
-            if (testCountry != null && testCountry.Id > 0)
+            if (_testCountry != null && _testCountry.Id > 0
+                    && (_testCountry.Name == Enums.GetEnumDescription(Enums.CountryTestData.Name) 
+                    || _testCountry.Name == Enums.GetEnumDescription(Enums.CountryUpdatedTestData.Name)))
             {
-                await _client.DeleteAsync(requestCountry + testCountry.Id);
-                testCountry = null;
+                await _client.DeleteAsync(_requestCountry + _testCountry.Id);
+                _testCountry = null;
             }
 
-            if (testUser != null && testUser.Id > 0)
+            if (_testUser != null && _testUser.Id > 0
+                    && (_testUser.Name == Enums.GetEnumDescription(Enums.UserTestData.Name) 
+                    || _testUser.Name == Enums.GetEnumDescription(Enums.UserUpatedTestData.Name)))
             {
-                await _client.DeleteAsync(requestUser + testUser.Id);
-                testUser = null;
+                await _client.DeleteAsync(_requestUser + _testUser.Id);
+                _testUser = null;
+            }
+
+            if (_testAddressType != null && _testAddressType.Id > 0
+                && (_testAddressType.Name == Enums.GetEnumDescription(Enums.AddressTypeTestData.Name) 
+                || _testAddressType.Name == Enums.GetEnumDescription(Enums.AddressTypeUpdtedTestData.Name)))
+    
+            {
+                await _client.DeleteAsync(_requestAddressType + _testAddressType.Id);
+                _testAddressType = null;
             }
 
         }

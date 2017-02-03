@@ -14,7 +14,6 @@ namespace SportsStore2.API.Controllers
     public class ProductsController : Controller
     {
         private readonly IProductsService _productsService;
-        //private readonly IGenericService<Product> _productsService;
 
         public ProductsController(IProductsService productsService)
         {

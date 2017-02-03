@@ -82,6 +82,30 @@ namespace SportsStore2.API.Models
                 }
                 #endregion
 
+                #region Brands
+
+                if (!context.Brands.Any())
+                {
+                    context.Brands.AddRange(
+                            new Brand
+                            {
+                                Name = "Adidas",
+                                ImageId = 25
+                            },
+                            new Brand
+                            {
+                                Name = "Nike",
+                                ImageId = 26
+                            },
+                            new Brand
+                            {
+                                Name = "Puma",
+                                ImageId = 27
+                            }
+                        );
+
+                }
+                #endregion
                 #region Products
 
                 if (!context.Products.Any())
@@ -153,32 +177,6 @@ namespace SportsStore2.API.Models
                 }
 
                 #endregion
-
-                #region Brands
-
-                if (!context.Brands.Any())
-                {
-                    context.Brands.AddRange(
-                            new Brand
-                            {
-                                Name = "Adidas",
-                                ImageId = 25
-                            },
-                            new Brand
-                            {
-                                Name = "Nike",
-                                ImageId = 26
-                            },
-                            new Brand
-                            {
-                                Name = "Puma",
-                                ImageId = 27
-                            }
-                        );
-
-                }
-                #endregion
-
 
 
                 context.SaveChanges();

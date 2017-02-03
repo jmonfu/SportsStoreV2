@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SportsStore2.API.Data;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 using SportsStore2.API.Repository;
 
 namespace SportsStore2.API.Services

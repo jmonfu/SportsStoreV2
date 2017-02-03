@@ -77,6 +77,7 @@ namespace SportsStore2.API
             services.AddTransient(typeof(IProductsService), typeof(ProductsService));
             services.AddTransient(typeof(IUsersService), typeof(UsersService));
             services.AddTransient(typeof(IAddressService), typeof(AddressService));
+            services.AddTransient(typeof(IAspNetUsersService), typeof(AspNetUsersService));
 
         }
 
@@ -94,7 +95,7 @@ namespace SportsStore2.API
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
 
-                SeedData.Initialize(app.ApplicationServices);
+                //SeedData.Initialize(app.ApplicationServices);
 
             }
             else

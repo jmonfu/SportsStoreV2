@@ -19,8 +19,8 @@ namespace SportsStore2.Tests.IntegrationTests
     public class AddressTypeControllerIntegrationTests
     {
         private HttpClient _client;
-        private AddressType testAddressType;
-        private string request;
+        private AddressType _testAddressType;
+        private string _request;
 
         [SetUp]
         public void Setup()
@@ -34,14 +34,17 @@ namespace SportsStore2.Tests.IntegrationTests
                 .UseStartup<Startup>());
 
             _client = server.CreateClient();
-            testAddressType = new AddressType{ Name = "testAddressType" };
-            request = "api/AddressType/";
+            _testAddressType = new AddressType
+            {
+                Name = Enums.GetEnumDescription(Enums.AddressTypeTestData.Name)
+            };
+            _request = Enums.GetEnumDescription(Enums.Requests.AddressType);
         }
 
         [Test]
         public async Task Get_ReturnsAListOfAddressTypes_AddressTypeController()
         {
-            var response = await _client.GetAsync(request + "Get");
+            var response = await _client.GetAsync(_request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -51,34 +54,18 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneAddressType_AddressTypeController()
         {
             //Arrange 
-            AddressType selectedAddressType = null;
-
             //Act
-            var getResponse = await _client.GetAsync(request + "Get");
-            var all = getResponse.Content.ReadAsStringAsync();
-            var allAddressType = JsonConvert.DeserializeObject<List<AddressType>>(all.Result);
-            if (allAddressType.Count > 0)
-            {
-                selectedAddressType = allAddressType.FirstOrDefault();
-            }
-            else
-            {
-                var postResponse = await _client.PostAsJsonAsync(request, testAddressType);
-                var created = await postResponse.Content.ReadAsStringAsync();
-                selectedAddressType = JsonConvert.DeserializeObject<AddressType>(created);
+            _testAddressType = await InsertAddressTypeIfNotAny();
 
-                testAddressType.Id = selectedAddressType.Id;
-            }
-
-            var getResponseOneAddressType = await _client.GetAsync(request + "Get/" + selectedAddressType.Id);
+            var getResponseOneAddressType = await _client.GetAsync(_request + "Get/" + _testAddressType.Id);
             var fetched = await getResponseOneAddressType.Content.ReadAsStringAsync();
             var fetchedAddressType = JsonConvert.DeserializeObject<AddressType>(fetched);
 
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponseOneAddressType.IsSuccessStatusCode);
-            Assert.AreEqual(selectedAddressType.Id, fetchedAddressType.Id);
-            Assert.AreEqual(selectedAddressType.Name, fetchedAddressType.Name);
+            Assert.AreEqual(_testAddressType.Id, fetchedAddressType.Id);
+            Assert.AreEqual(_testAddressType.Name, fetchedAddressType.Name);
         }
+
 
         [Test]
         public async Task Create_CreateAAddressType_AddressTypeController()
@@ -86,13 +73,13 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testAddressType);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddressType);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddressType = JsonConvert.DeserializeObject<AddressType>(created);
 
-            testAddressType.Id = createdAddressType.Id;
+            _testAddressType.Id = createdAddressType.Id;
 
-            var getResponse = await _client.GetAsync(request + "Get/" + createdAddressType.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdAddressType.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedAddressType = JsonConvert.DeserializeObject<AddressType>(fetched);
 
@@ -100,11 +87,11 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testAddressType.Name, createdAddressType.Name);
-            Assert.AreEqual(testAddressType.Name, fetchedAddressType.Name);
+            Assert.AreEqual(_testAddressType.Name, createdAddressType.Name);
+            Assert.AreEqual(_testAddressType.Name, fetchedAddressType.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdAddressType.Id);
-            Assert.AreEqual(testAddressType.Id, fetchedAddressType.Id);
+            Assert.AreEqual(_testAddressType.Id, fetchedAddressType.Id);
         }
 
         [Test]
@@ -114,21 +101,21 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testAddressType);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddressType);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddressType = JsonConvert.DeserializeObject<AddressType>(created);
 
             //PUT(Update)
-            testAddressType.Id = createdAddressType.Id;
-            testAddressType.Name = "testAddressTypeUpdated";
-            var putResponse = await _client.PutAsJsonAsync(request + createdAddressType.Id, testAddressType);
+            _testAddressType.Id = createdAddressType.Id;
+            _testAddressType.Name = Enums.GetEnumDescription(Enums.AddressTypeUpdtedTestData.Name);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdAddressType.Id, _testAddressType);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + testAddressType.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testAddressType.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedAddressType = JsonConvert.DeserializeObject<AddressType>(fetched);
 
-            testAddressType.Id = fetchedAddressType.Id;
+            _testAddressType.Id = fetchedAddressType.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -136,7 +123,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("testAddressTypeUpdated", fetchedAddressType.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.AddressTypeUpdtedTestData.Name), fetchedAddressType.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdAddressType.Id);
             Assert.AreEqual(createdAddressType.Id, fetchedAddressType.Id);
@@ -150,15 +137,15 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testAddressType);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testAddressType);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdAddressType = JsonConvert.DeserializeObject<AddressType>(created);
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request + createdAddressType.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request + createdAddressType.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
-            var allCountries = JsonConvert.DeserializeObject<List<AddressType>>(all.Result);
+            var allAddressTypes = JsonConvert.DeserializeObject<List<AddressType>>(all.Result);
 
             //Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -166,20 +153,41 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testAddressType.Name, createdAddressType.Name);
+            Assert.AreEqual(_testAddressType.Name, createdAddressType.Name);
             Assert.AreNotEqual(Guid.Empty, createdAddressType.Id);
 
-            Assert.IsTrue(allCountries.Any(x => x.Id == createdAddressType.Id == false));
+            Assert.IsTrue(allAddressTypes.Any(x => x.Id == createdAddressType.Id == false));
+        }
+
+        private async Task<AddressType> InsertAddressTypeIfNotAny()
+        {
+            var getResponse = await _client.GetAsync(_request + "Get");
+            var all = getResponse.Content.ReadAsStringAsync();
+            var allAddressType = JsonConvert.DeserializeObject<List<AddressType>>(all.Result);
+            if (allAddressType.Count > 0)
+            {
+                _testAddressType = allAddressType.FirstOrDefault();
+            }
+            else
+            {
+                var postResponse = await _client.PostAsJsonAsync(_request, _testAddressType);
+                var created = await postResponse.Content.ReadAsStringAsync();
+                _testAddressType = JsonConvert.DeserializeObject<AddressType>(created);
+            }
+
+            return _testAddressType;
         }
 
         [TearDown]
         public async Task DeleteAddressType()
         {
             //Cleanup
-            if (testAddressType != null && testAddressType.Id > 0)
+            if (_testAddressType != null && _testAddressType.Id > 0 
+                && (_testAddressType.Name == Enums.GetEnumDescription(Enums.AddressTypeTestData.Name) 
+                || _testAddressType.Name == Enums.GetEnumDescription(Enums.AddressTypeUpdtedTestData.Name)))
             {
-                await _client.DeleteAsync(request + testAddressType.Id);
-                testAddressType = null;
+                await _client.DeleteAsync(_request + _testAddressType.Id);
+                _testAddressType = null;
             }
         }
 

@@ -20,8 +20,8 @@ namespace SportsStore2.Tests.IntegrationTests
     public class ImageControllerIntegrationTests
     {
         private HttpClient _client;
-        private Image testImage;
-        private string request;
+        private Image _testImage;
+        private string _request;
 
         [SetUp]
         public void Setup()
@@ -36,15 +36,18 @@ namespace SportsStore2.Tests.IntegrationTests
 
             _client = server.CreateClient();
 
-            testImage = new Image { Name = "testImage", Url = "/Brands/adidas_logo_test.png" };
-            request = "api/Images/";
+            _testImage = new Image
+            {
+                Name = Enums.GetEnumDescription(Enums.ImageBrandTestData.Name),
+                Url = Enums.GetEnumDescription(Enums.ImageBrandTestData.Url)
+            };
+            _request = Enums.GetEnumDescription(Enums.Requests.Images);
         }
 
         [Test]
         public async Task Get_ReturnsAListOfImages_ImagesController()
         {
-            var request = "api/Images/Get";
-            var response = await _client.GetAsync(request);
+            var response = await _client.GetAsync(_request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -54,34 +57,36 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneImage_ImagesController()
         {
             //Arrange 
-            Image selectedImage = null;
-            
+
+            _testImage = await InsertIfNotAny();
+           
+            var getResponseOneImage = await _client.GetAsync(_request + "Get/" + _testImage.Id);
+            var fetched = await getResponseOneImage.Content.ReadAsStringAsync();
+            var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
+
+            Assert.IsTrue(getResponseOneImage.IsSuccessStatusCode);
+            Assert.AreEqual(_testImage.Id, fetchedImage.Id);
+            Assert.AreEqual(_testImage.Name, fetchedImage.Name);
+
+        }
+
+        private async Task<Image> InsertIfNotAny()
+        {
             //Act
-            var getResponse = await _client.GetAsync(request + "Get");
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allImages = JsonConvert.DeserializeObject<List<Image>>(all.Result);
             if (allImages.Count > 0)
             {
-                selectedImage = allImages.FirstOrDefault();
+                _testImage = allImages.FirstOrDefault();
             }
             else
             {
-                var postResponse = await _client.PostAsJsonAsync(request, testImage);
+                var postResponse = await _client.PostAsJsonAsync(_request, _testImage);
                 var created = await postResponse.Content.ReadAsStringAsync();
-                selectedImage = JsonConvert.DeserializeObject<Image>(created);
-
-                testImage.Id = selectedImage.Id;
+                _testImage = JsonConvert.DeserializeObject<Image>(created);
             }
-
-            var getResponseOneImage = await _client.GetAsync(request + "Get/" + selectedImage.Id);
-            var fetched = await getResponseOneImage.Content.ReadAsStringAsync();
-            var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
-
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
-            Assert.IsTrue(getResponseOneImage.IsSuccessStatusCode);
-            Assert.AreEqual(selectedImage.Id, fetchedImage.Id);
-            Assert.AreEqual(selectedImage.Name, fetchedImage.Name);
-
+            return _testImage;
         }
 
         [Test]
@@ -90,13 +95,13 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testImage);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
-            testImage.Id = createdImage.Id;
+            _testImage.Id = createdImage.Id;
 
-            var getResponse = await _client.GetAsync(request + "Get/" + createdImage.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdImage.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
 
@@ -104,8 +109,8 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testImage.Name, createdImage.Name);
-            Assert.AreEqual(testImage.Name, fetchedImage.Name);
+            Assert.AreEqual(_testImage.Name, createdImage.Name);
+            Assert.AreEqual(_testImage.Name, fetchedImage.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdImage.Id);
             Assert.AreEqual(createdImage.Id, fetchedImage.Id);
@@ -118,22 +123,22 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testImage);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
             //PUT(Update)
-            testImage.Id = createdImage.Id;
-            testImage.Name = "testImageUpdated";
-            testImage.Url = "/Brands/adidas_logo_test_Updated.png";
-            var putResponse = await _client.PutAsJsonAsync(request + createdImage.Id, testImage);
+            _testImage.Id = createdImage.Id;
+            _testImage.Name = Enums.GetEnumDescription(Enums.ImageBrandUpdatedTestData.Name);
+            _testImage.Url = Enums.GetEnumDescription(Enums.ImageBrandUpdatedTestData.Url);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdImage.Id, _testImage);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + testImage.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testImage.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedImage = JsonConvert.DeserializeObject<Image>(fetched);
 
-            testImage.Id = fetchedImage.Id;
+            _testImage.Id = fetchedImage.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -141,11 +146,11 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("testImage", createdImage.Name);
-            Assert.AreEqual("testImageUpdated", fetchedImage.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.ImageBrandTestData.Name), createdImage.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.ImageBrandUpdatedTestData.Name), fetchedImage.Name);
 
-            Assert.AreEqual("/Brands/adidas_logo_test.png", createdImage.Url);
-            Assert.AreEqual("/Brands/adidas_logo_test_Updated.png", fetchedImage.Url);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.ImageBrandTestData.Url), createdImage.Url);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.ImageBrandUpdatedTestData.Url), fetchedImage.Url);
 
             Assert.AreNotEqual(Guid.Empty, createdImage.Id);
             Assert.AreEqual(createdImage.Id, fetchedImage.Id);
@@ -159,13 +164,13 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testImage);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testImage);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdImage = JsonConvert.DeserializeObject<Image>(created);
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request + createdImage.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request + createdImage.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
             var allImages = JsonConvert.DeserializeObject<List<Image>>(all.Result);
 
@@ -175,7 +180,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testImage.Name, createdImage.Name);
+            Assert.AreEqual(_testImage.Name, createdImage.Name);
             Assert.AreNotEqual(Guid.Empty, createdImage.Id);
 
             Assert.IsTrue(allImages.Any(x => x.Id == createdImage.Id == false));
@@ -187,10 +192,12 @@ namespace SportsStore2.Tests.IntegrationTests
         {
             //Cleanup
 
-            if (testImage != null && testImage.Id > 0)
+            if (_testImage != null && _testImage.Id > 0
+                && (_testImage.Name == Enums.GetEnumDescription(Enums.ImageBrandTestData.Name)
+                || _testImage.Name == Enums.GetEnumDescription(Enums.ImageBrandUpdatedTestData.Name)))
             {
-                await _client.DeleteAsync(request + testImage.Id);
-                testImage = null;
+                await _client.DeleteAsync(_request + _testImage.Id);
+                _testImage = null;
             }
 
         }

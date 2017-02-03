@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using SportsStore2.API.Models;
+using SportsStore2.API.Models.AccountViewModels;
 
 namespace SportsStore2.API.Repository
 {
@@ -14,7 +15,8 @@ namespace SportsStore2.API.Repository
         void Add(T entity, Expression<Func<T, bool>> filter = null);
         void Update(T entity);
         void Delete(T entity);
+        bool AddAspNetUsers(RegisterViewModel registerViewModel);
         AspNetUsers CheckUserExists(string userEmail);
-        bool UpdateUserEmailAspnetUsersTable(User aspnetUser);
+        bool UpdateUserEmailAspnetUsersTable(User aspnetUser);  
     }
 }

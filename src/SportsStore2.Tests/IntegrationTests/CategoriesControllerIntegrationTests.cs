@@ -19,8 +19,8 @@ namespace SportsStore2.Tests.IntegrationTests
     public class CategoriesControllerIntegrationTests
     {
         private HttpClient _client;
-        private Category testCategory;
-        private string request;
+        private Category _testCategory;
+        private string _request;
 
         [SetUp]
         public void Setup()
@@ -34,14 +34,17 @@ namespace SportsStore2.Tests.IntegrationTests
                 .UseStartup<Startup>());
 
             _client = server.CreateClient();
-            testCategory = new Category { Name = "testCategory"};
-            request = "api/Categories/";
+            _testCategory = new Category
+            {
+                Name = Enums.GetEnumDescription(Enums.CategoryTestData.Name)
+            };
+            _request = Enums.GetEnumDescription(Enums.Requests.Categories);
         }
 
         [Test]
         public async Task Get_ReturnsAListOfCategories_CategoriesController()
         {
-            var response = await _client.GetAsync(request + "Get");
+            var response = await _client.GetAsync(_request + "Get");
             response.EnsureSuccessStatusCode();
 
             Assert.IsTrue(true);
@@ -51,34 +54,19 @@ namespace SportsStore2.Tests.IntegrationTests
         public async Task GetById_GetOneCategory_CategoriesController()
         {
             //Arrange 
-            Category selectedCategory = null;
 
             //Act
-            var getResponse = await _client.GetAsync(request + "Get");
-            var all = getResponse.Content.ReadAsStringAsync();
-            var allCategories = JsonConvert.DeserializeObject<List<Category>>(all.Result);
-            if (allCategories.Count > 0)
-            {
-                selectedCategory = allCategories.FirstOrDefault();
-            }
-            else
-            {
-                var postResponse = await _client.PostAsJsonAsync(request, testCategory);
-                var created = await postResponse.Content.ReadAsStringAsync();
-                selectedCategory = JsonConvert.DeserializeObject<Category>(created);
+            _testCategory = await InsertIfNotAny();
 
-                testCategory.Id = selectedCategory.Id;
-            }
-
-            var getResponseOneCategory = await _client.GetAsync(request + "Get/" + selectedCategory.Id);
+            var getResponseOneCategory = await _client.GetAsync(_request + "Get/" + _testCategory.Id);
             var fetched = await getResponseOneCategory.Content.ReadAsStringAsync();
             var fetchedCategory = JsonConvert.DeserializeObject<Category>(fetched);
 
-            Assert.IsTrue(getResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponseOneCategory.IsSuccessStatusCode);
-            Assert.AreEqual(selectedCategory.Id, fetchedCategory.Id);
-            Assert.AreEqual(selectedCategory.Name, fetchedCategory.Name);
+            Assert.AreEqual(_testCategory.Id, fetchedCategory.Id);
+            Assert.AreEqual(_testCategory.Name, fetchedCategory.Name);
         }
+
 
         [Test]
         public async Task Create_CreateACategory_CategoriesController()
@@ -86,13 +74,13 @@ namespace SportsStore2.Tests.IntegrationTests
             //Arrange 
 
             //Act
-            var postResponse = await _client.PostAsJsonAsync(request, testCategory);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCategory);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCategory = JsonConvert.DeserializeObject<Category>(created);
 
-            testCategory.Id = createdCategory.Id;
+            _testCategory.Id = createdCategory.Id;
 
-            var getResponse = await _client.GetAsync(request + "Get/" + createdCategory.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + createdCategory.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedCategory = JsonConvert.DeserializeObject<Category>(fetched);
 
@@ -100,11 +88,11 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testCategory.Name, createdCategory.Name);
-            Assert.AreEqual(testCategory.Name, fetchedCategory.Name);
+            Assert.AreEqual(_testCategory.Name, createdCategory.Name);
+            Assert.AreEqual(_testCategory.Name, fetchedCategory.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdCategory.Id);
-            Assert.AreEqual(testCategory.Id, fetchedCategory.Id);
+            Assert.AreEqual(_testCategory.Id, fetchedCategory.Id);
         }
 
         [Test]
@@ -114,21 +102,21 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testCategory);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCategory);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCategory = JsonConvert.DeserializeObject<Category>(created);
 
             //PUT(Update)
-            testCategory.Id = createdCategory.Id;
-            testCategory.Name = "testCategoryUpdated";
-            var putResponse = await _client.PutAsJsonAsync(request + createdCategory.Id, testCategory);
+            _testCategory.Id = createdCategory.Id;
+            _testCategory.Name = Enums.GetEnumDescription(Enums.CategoryUpdatedTestData.Name);
+            var putResponse = await _client.PutAsJsonAsync(_request + createdCategory.Id, _testCategory);
 
             //GET
-            var getResponse = await _client.GetAsync(request + "Get/" + testCategory.Id);
+            var getResponse = await _client.GetAsync(_request + "Get/" + _testCategory.Id);
             var fetched = await getResponse.Content.ReadAsStringAsync();
             var fetchedCategory = JsonConvert.DeserializeObject<Category>(fetched);
 
-            testCategory.Id = fetchedCategory.Id;
+            _testCategory.Id = fetchedCategory.Id;
 
             // Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -136,7 +124,7 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(putResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual("testCategoryUpdated", fetchedCategory.Name);
+            Assert.AreEqual(Enums.GetEnumDescription(Enums.CategoryUpdatedTestData.Name), fetchedCategory.Name);
 
             Assert.AreNotEqual(Guid.Empty, createdCategory.Id);
             Assert.AreEqual(createdCategory.Id, fetchedCategory.Id);
@@ -150,15 +138,15 @@ namespace SportsStore2.Tests.IntegrationTests
 
             //Act
             //POST(Crete)
-            var postResponse = await _client.PostAsJsonAsync(request, testCategory);
+            var postResponse = await _client.PostAsJsonAsync(_request, _testCategory);
             var created = await postResponse.Content.ReadAsStringAsync();
             var createdCategory = JsonConvert.DeserializeObject<Category>(created);
 
             //DELETE
-            var deleteResponse = await _client.DeleteAsync(request + createdCategory.Id);
-            var getResponse = await _client.GetAsync(request + "Get");
+            var deleteResponse = await _client.DeleteAsync(_request + createdCategory.Id);
+            var getResponse = await _client.GetAsync(_request + "Get");
             var all = getResponse.Content.ReadAsStringAsync();
-            var allCountries = JsonConvert.DeserializeObject<List<Category>>(all.Result);
+            var allCategories = JsonConvert.DeserializeObject<List<Category>>(all.Result);
 
             //Assert
             Assert.IsTrue(postResponse.IsSuccessStatusCode);
@@ -166,20 +154,42 @@ namespace SportsStore2.Tests.IntegrationTests
             Assert.IsTrue(deleteResponse.StatusCode == HttpStatusCode.NoContent);
             Assert.IsTrue(getResponse.IsSuccessStatusCode);
 
-            Assert.AreEqual(testCategory.Name, createdCategory.Name);
+            Assert.AreEqual(_testCategory.Name, createdCategory.Name);
             Assert.AreNotEqual(Guid.Empty, createdCategory.Id);
 
-            Assert.IsTrue(allCountries.Any(x => x.Id == createdCategory.Id == false));
+            if(allCategories.Count > 0)
+                Assert.IsTrue(allCategories.Any(x => x.Id == createdCategory.Id == false));
+        }
+
+        private async Task<Category> InsertIfNotAny()
+        {
+            var getResponse = await _client.GetAsync(_request + "Get");
+            var all = getResponse.Content.ReadAsStringAsync();
+            var allCategories = JsonConvert.DeserializeObject<List<Category>>(all.Result);
+            if (allCategories.Count > 0)
+            {
+                _testCategory = allCategories.FirstOrDefault();
+            }
+            else
+            {
+                var postResponse = await _client.PostAsJsonAsync(_request, _testCategory);
+                var created = await postResponse.Content.ReadAsStringAsync();
+                _testCategory = JsonConvert.DeserializeObject<Category>(created);
+            }
+
+            return _testCategory;
         }
 
         [TearDown]
         public async Task DeleteCategory()
         {
             //Cleanup
-            if (testCategory != null && testCategory.Id > 0)
+            if (_testCategory != null && _testCategory.Id > 0
+                && (_testCategory.Name == Enums.GetEnumDescription(Enums.CategoryTestData.Name)
+                || _testCategory.Name == Enums.GetEnumDescription(Enums.CategoryUpdatedTestData.Name)))
             {
-                await _client.DeleteAsync(request + testCategory.Id);
-                testCategory = null;
+                await _client.DeleteAsync(_request + _testCategory.Id);
+                _testCategory = null;
             }
         }
 

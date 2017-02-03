@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SportsStore2.API.Models
 {
@@ -9,10 +10,14 @@ namespace SportsStore2.API.Models
         public short CountryId { get; set; }
         public long UserId { get; set; }
         public short AddressTypeId { get; set; }
+        [Required(ErrorMessage = "This field is required")]
         public string Address1 { get; set; }
         public string Address2 { get; set; }
         public string Address3 { get; set; }
+        [Required(ErrorMessage = "This field is required")]
+        [RegularExpression("^[a-zA-Z ]*$", ErrorMessage = "Only characters are allowed")]
         public string City { get; set; }
+        [Required(ErrorMessage = "This field is required")]
         public string PostCode { get; set; }
 
         public virtual AddressType AddressType { get; set; }

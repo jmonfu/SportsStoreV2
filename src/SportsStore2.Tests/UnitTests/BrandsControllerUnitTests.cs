@@ -71,131 +71,129 @@ namespace SportsStore2.Tests.UnitTests
             Assert.AreEqual(i, 3);
         }
 
-        //[Test]
-        //public async Task GetById_ReturnsOneBrand_BrandsController()
-        //{
-        //    //Arrange
-        //    var mockService = new Mock<IGenericService<Brand>>();
-        //    mockService.Setup(repo => repo.GetById<Brand>(
-        //            It.IsAny<Expression<Func<Brand, bool>>>(),
-        //            It.IsAny<string>(),
-        //            It.IsAny<bool>())
-        //        ).ReturnsAsync(new Brand {Id = 1, Name = "Adidas"});
-        //    var controller = new BrandsController(mockService.Object);
+        [Test]
+        public async Task GetById_ReturnsOneBrand_BrandsController()
+        {
+            //Arrange
+            var mockService = new Mock<IGenericService<Brand>>();
+            mockService.Setup(repo => repo.GetById<Brand>(
+                    It.IsAny<Expression<Func<Brand, bool>>>(),
+                    It.IsAny<string>())
+                ).ReturnsAsync(new Brand { Id = 1, Name = "Adidas" });
+            var controller = new BrandsController(mockService.Object);
 
-        //    //Act
-        //    JsonResult actualResult = await controller.Get(1) as JsonResult;
-        //    var obj = actualResult.Value as Brand;
+            //Act
+            JsonResult actualResult = await controller.Get(1) as JsonResult;
+            var obj = actualResult.Value as Brand;
 
-        //    //Assert
-        //    Assert.AreEqual(obj.Id, 1);
-        //    Assert.AreEqual(obj.Name, "Adidas");
-        //}
+            //Assert
+            Assert.AreEqual(obj.Id, 1);
+            Assert.AreEqual(obj.Name, "Adidas");
+        }
 
-        //[Test]
-        //public void CreateBrand_ValidBrand_Returns_CreatedAtRouteResult_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
-        //    var brand = new Brand
-        //    {
-        //        Id = 10,
-        //        Name = "TestBrand",
-        //        ImageId = 1,
-        //        Image = new Image { Id = 1, Name = "TestImage", Url = "C:/Images" }
-        //    };
+        [Test]
+        public void CreateBrand_ValidBrand_Returns_CreatedAtRouteResult_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
+            var brand = new Brand
+            {
+                Name = "TestBrand",
+                ImageId = 1,
+                Image = new Image { Id = 1, Name = "TestImage", Url = "C:/Images" }
+            };
 
-        //    mockService.Setup(s => s.Add(
-        //                It.IsAny<Brand>(),
-        //                It.IsAny<Expression<Func<Brand, bool>>>())
-        //                ).Returns(new Task<bool>(() => true));
+            mockService.Setup(s => s.Add(
+                        It.IsAny<Brand>(),
+                        It.IsAny<Expression<Func<Brand, bool>>>())
+                        ).Returns(true);
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var actualResult = controller.Create(brand);
+            var controller = new BrandsController(mockService.Object);
+            var actualResult = controller.Create(brand);
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(CreatedAtRouteResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(CreatedAtRouteResult));
+        }
 
-        //[Test]
-        //public void CreateBrand_NullBrand_Returns_BadRequest_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
-        //    Brand brand = null;
+        [Test]
+        public void CreateBrand_NullBrand_Returns_BadRequest_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
+            Brand brand = null;
 
-        //    mockService.Setup(s => s.Add(
-        //                It.IsAny<Brand>(),
-        //                It.IsAny<Expression<Func<Brand, bool>>>())
-        //                ).Returns(new Task<bool>(() => true));
+            mockService.Setup(s => s.Add(
+                        It.IsAny<Brand>(),
+                        It.IsAny<Expression<Func<Brand, bool>>>())
+                        ).Returns(true);
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var actualResult = controller.Create(brand);
+            var controller = new BrandsController(mockService.Object);
+            var actualResult = controller.Create(brand);
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
+        }
 
-        //[Test]
-        //public void UpdateBrand_ValidBrand_Returns_NoContentResult_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
-        //    mockService.Setup(s => s.Update(
-        //                It.IsAny<Brand>())
-        //                ).Returns(true);
+        [Test]
+        public void UpdateBrand_ValidBrand_Returns_NoContentResult_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
+            mockService.Setup(s => s.Update(
+                        It.IsAny<Brand>())
+                        ).Returns(true);
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var brand = Brands.FirstOrDefault(x => x.Id == 1);
-        //    var actualResult = controller.Update(Convert.ToInt32(brand.Id) , brand);
+            var controller = new BrandsController(mockService.Object);
+            var brand = Brands.FirstOrDefault(x => x.Id == 1);
+            var actualResult = controller.Update(Convert.ToInt32(brand.Id), brand);
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(NoContentResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(NoContentResult));
+        }
 
-        //[Test]
-        //public void UpdateBrand_NullBrand_Returns_BadRequest_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
+        [Test]
+        public void UpdateBrand_NullBrand_Returns_BadRequest_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
 
-        //    mockService.Setup(s => s.Update(
-        //                It.IsAny<Brand>())
-        //                ).Returns(true);
+            mockService.Setup(s => s.Update(
+                        It.IsAny<Brand>())
+                        ).Returns(true);
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var actualResult = controller.Update(Convert.ToInt32(0), null);
+            var controller = new BrandsController(mockService.Object);
+            var actualResult = controller.Update(Convert.ToInt32(0), null);
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
+        }
 
-        //[Test]
-        //public void DeleteBrand_ValidBrand_Returns_NoContentResult_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
-        //    mockService.Setup(s => s.Delete(
-        //                It.IsAny<Brand>())
-        //                );
+        [Test]
+        public void DeleteBrand_ValidBrand_Returns_NoContentResult_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
+            mockService.Setup(s => s.Delete(
+                        It.IsAny<Brand>())
+                        );
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var brand = Brands.FirstOrDefault(x => x.Id == 1);
-        //    var actualResult = controller.Delete(Convert.ToInt32(brand.Id));
+            var controller = new BrandsController(mockService.Object);
+            var brand = Brands.FirstOrDefault(x => x.Id == 1);
+            var actualResult = controller.Delete(Convert.ToInt32(brand.Id));
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(NoContentResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(NoContentResult));
+        }
 
-        //[Test]
-        //public void DeleteBrand_NullBrand_Returns_BadRequest_BrandsController()
-        //{
-        //    var mockService = new Mock<IGenericService<Brand>>();
+        [Test]
+        public void DeleteBrand_NullBrand_Returns_BadRequest_BrandsController()
+        {
+            var mockService = new Mock<IGenericService<Brand>>();
 
-        //    mockService.Setup(s => s.Update(
-        //                It.IsAny<Brand>())
-        //                ).Returns(true);
+            mockService.Setup(s => s.Update(
+                        It.IsAny<Brand>())
+                        ).Returns(true);
 
-        //    var controller = new BrandsController(mockService.Object);
-        //    var actualResult = controller.Delete(Convert.ToInt32(0));
+            var controller = new BrandsController(mockService.Object);
+            var actualResult = controller.Delete(Convert.ToInt32(0));
 
-        //    //Assert
-        //    Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
-        //}
+            //Assert
+            Assert.AreEqual(actualResult.GetType(), typeof(BadRequestResult));
+        }
     }
 }

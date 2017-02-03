@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace SportsStore2.API.Models
 {
@@ -11,6 +12,7 @@ namespace SportsStore2.API.Models
         }
 
         public long Id { get; set; }
+        [Required(ErrorMessage = "This field is required")]
         public string Name { get; set; }
         public long ImageId { get; set; }
 

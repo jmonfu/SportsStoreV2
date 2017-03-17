@@ -49,16 +49,12 @@ namespace SportsStore2.API
         public IConfigurationRoot Configuration { get; }
 
         //TODO get the Secret key
-        private const string SecretKey = "needtogetthisfromenvironment";
-        private readonly SymmetricSecurityKey _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
+        private static string SecretKey = "";
+        private SymmetricSecurityKey _signingKey;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            // Add framework services.
-            services.AddOptions();
-
             // Add service and create Policy with options
             services.AddCors(options =>
             {
@@ -68,6 +64,13 @@ namespace SportsStore2.API
                     .AllowAnyHeader()
                     .AllowCredentials());
             });
+
+            SecretKey = Configuration.GetSection("AppSettings").GetSection("SecretKey").Value;
+            _signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey));
+
+
+            // Add framework services.
+            services.AddOptions();
 
             var connection = @" Server=.;Database=SportsStore2;Trusted_Connection=True;MultipleActiveResultSets=true";
             services.AddDbContext<SportsStore2Context>(options => options.UseSqlServer(connection));
